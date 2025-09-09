@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/client")
+@RequestMapping("client")
 public class ClientController {
 
     @Autowired
@@ -15,9 +15,9 @@ public class ClientController {
         return "GET";
     }
 
-    @GetMapping
-    public String getById() {
-        return "GET";
+    @GetMapping(path = "{id}")
+    public String getById(@PathVariable("id") String id) {
+        return id;
     }
 
     @PostMapping
