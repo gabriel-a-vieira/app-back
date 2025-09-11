@@ -3,6 +3,7 @@ package com.softix.app_back.client;
 import com.softix.app_back.address.Address;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 import java.util.UUID;
 
@@ -27,5 +28,11 @@ public class Client {
 
     @Embedded
     private Address address;
+
+    public Client() {}
+
+    public Client(ClientDTO dto) {
+        BeanUtils.copyProperties(dto, this);
+    }
 
 }

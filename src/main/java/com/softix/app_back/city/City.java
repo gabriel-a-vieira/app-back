@@ -28,4 +28,6 @@ public class City {
     @JoinColumn(name = "id_state")
     private State state;
 
+    public City() {}
+
 }

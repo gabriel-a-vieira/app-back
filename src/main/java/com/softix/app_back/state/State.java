@@ -2,6 +2,7 @@ package com.softix.app_back.state;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.beans.BeanUtils;
 
 import java.util.UUID;
 
@@ -20,5 +21,11 @@ public class State {
 
     @Column(name = "abbreviation", length = 5)
     private String abbreviation;
+
+    public State() {}
+
+    public State(StateDTO dto) {
+        BeanUtils.copyProperties(dto, this);
+    }
 
 }
