@@ -1,6 +1,8 @@
 package com.softix.app_back.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,8 +30,21 @@ public class ClientController {
     }
 
     @PostMapping
-    public String post() {
-        return "POST";
+    public ResponseEntity post(@RequestBody String jsonBody) {
+
+        if (jsonBody == null) return ResponseEntity.badRequest().body("Invalid JSON");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+
+            ClientDTO dto = objectMapper.readValue(jsonBody, ClientDTO.class);
+            return ResponseEntity.ok(clientService.save(dto));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error parsing JSON");
+        }
+
     }
 
     @PutMapping

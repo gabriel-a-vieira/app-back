@@ -1,6 +1,7 @@
 package com.softix.app_back.client;
 
 import com.softix.app_back.address.Address;
+import com.softix.app_back.address.AddressDTO;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -14,7 +15,7 @@ public class ClientDTO {
     private String name;
     private String email;
     private String phone;
-    private Address address;
+    private AddressDTO address;
 
     public ClientDTO() {}
 

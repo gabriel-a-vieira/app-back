@@ -1,10 +1,13 @@
 package com.softix.app_back.address;
 
 import com.softix.app_back.city.City;
-import com.softix.app_back.country.Country;
-import com.softix.app_back.state.State;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.Data;
+
+import java.util.UUID;
 
 @Data
 @Embeddable
@@ -31,17 +34,11 @@ public class Address {
     @Column(name = "longitude")
     private Double longitude;
 
-    @ManyToOne
-    @JoinColumn(name = "id_country")
-    private Country country;
+    @Column(name = "id_city", length = 38)
+    private UUID idCity;
 
     @ManyToOne
     @JoinColumn(name = "id_city")
     private City city;
-
-    @ManyToOne
-    @JoinColumn(name = "id_state")
-    private State state;
-
 
 }
