@@ -34,9 +34,6 @@ public class Address {
     @Column(name = "longitude")
     private Double longitude;
 
-    @Column(name = "id_city", length = 38)
-    private UUID idCity;
-
     @ManyToOne
     @JoinColumn(name = "id_city")
     private City city;

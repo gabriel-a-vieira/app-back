@@ -35,15 +35,15 @@ public class ClientController {
         if (jsonBody == null) return ResponseEntity.badRequest().body("Invalid JSON");
 
         ObjectMapper objectMapper = new ObjectMapper();
+        ClientDTO dto = null;
 
         try {
-
-            ClientDTO dto = objectMapper.readValue(jsonBody, ClientDTO.class);
-            return ResponseEntity.ok(clientService.save(dto));
-
+            dto = objectMapper.readValue(jsonBody, ClientDTO.class);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error parsing JSON");
         }
+
+        return ResponseEntity.ok(clientService.save(dto));
 
     }
 

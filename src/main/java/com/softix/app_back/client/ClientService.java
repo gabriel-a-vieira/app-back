@@ -2,11 +2,14 @@ package com.softix.app_back.client;
 
 import com.softix.app_back.address.Address;
 import com.softix.app_back.address.AddressDTO;
+import com.softix.app_back.city.City;
 import com.softix.app_back.city.CityRepository;
-import io.micrometer.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
@@ -53,16 +56,18 @@ public class ClientService {
 
             if (addressDTO.getCity() != null) {
 
+                City city = null;
+
                 if (addressDTO.getCity().getId() != null) {
-                    address.setIdCity(addressDTO.getCity().getId());
+                    city = cityRepository.findById(addressDTO.getCity().getId()).orElse(null);
                 } else {
+                    city = cityRepository.findByNameAndStateAbbreviation(addressDTO.getCity().getName(), addressDTO.getState().getAbbreviation());
+                }
 
-                    UUID idCity = cityRepository.findIdByCityNameAndStateAbbreviation(addressDTO.getCity().getName(), addressDTO.getState().getAbbreviation());
-
-                    if (idCity != null) {
-                        address.setIdCity(idCity);
-                    }
-
+                if (city != null) {
+                    address.setCity(city);
+                } else {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "City not found!");
                 }
 
             }
