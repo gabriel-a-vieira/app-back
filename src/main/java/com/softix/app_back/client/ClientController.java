@@ -35,7 +35,7 @@ public class ClientController {
         if (jsonBody == null) return ResponseEntity.badRequest().body("Invalid JSON");
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ClientDTO dto = null;
+        ClientDTO dto;
 
         try {
             dto = objectMapper.readValue(jsonBody, ClientDTO.class);

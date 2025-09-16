@@ -3,19 +3,15 @@ package com.softix.app_back.client;
 import com.softix.app_back.address.Address;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.beans.BeanUtils;
+import utils.model.RootEntity;
 
-import java.util.UUID;
-
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "client")
-public class Client {
-
-    @Id
-    @GeneratedValue
-    @Column(name = "id", length = 38)
-    private UUID id;
+public class Client extends RootEntity {
 
     @Column(name = "name", length = 150)
     private String name;

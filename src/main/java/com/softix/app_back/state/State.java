@@ -1,20 +1,18 @@
 package com.softix.app_back.state;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.beans.BeanUtils;
+import utils.model.RootEntity;
 
-import java.util.UUID;
-
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "state")
-public class State {
-
-    @Id
-    @GeneratedValue
-    @Column(name = "id", length = 38)
-    private UUID id;
+public class State extends RootEntity {
 
     @Column(name = "name", length = 38)
     private String name;

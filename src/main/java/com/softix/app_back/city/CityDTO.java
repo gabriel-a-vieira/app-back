@@ -11,7 +11,11 @@ public class CityDTO {
 
     private UUID id;
     private String name;
+
+    private UUID idCountry;
     private Country country;
+
+    private UUID idState;
     private State state;
 
     public CityDTO() {}
