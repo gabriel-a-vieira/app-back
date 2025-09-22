@@ -23,8 +23,14 @@ public class AddressDTO {
     private String neighborhood;
     private Double latitude;
     private Double longitude;
-    private CountryDTO country;
-    private CityDTO city;
-    private StateDTO state;
+
+    private String idCity;
+    private String city;
+
+    private String idState;
+    private String state;
+
+    private String idCountry;
+    private String country;
 
 }

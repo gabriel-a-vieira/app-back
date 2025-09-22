@@ -4,6 +4,7 @@ import com.softix.app_back.address.Address;
 import com.softix.app_back.address.AddressDTO;
 import com.softix.app_back.city.City;
 import com.softix.app_back.city.CityRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,6 @@ public class ClientService {
 
         Client client = new Client();
 
-        client.setId(UUID.randomUUID());
         client.setName(dto.getName());
         client.setEmail(dto.getEmail());
         client.setPhone(dto.getPhone());
@@ -48,27 +48,23 @@ public class ClientService {
             address.setNumber(addressDTO.getNumber());
             address.setStreet(addressDTO.getStreet());
             address.setComplement(addressDTO.getComplement());
-            address.setPostalCode(addressDTO.getPostalCode());
+            address.setPostalCode(StringUtils.getDigits(addressDTO.getPostalCode()));
             address.setNeighborhood(addressDTO.getNeighborhood());
             address.setLatitude(addressDTO.getLatitude());
             address.setLongitude(addressDTO.getLongitude());
 
-            if (addressDTO.getCity() != null) {
+            City city = null;
 
-                City city = null;
+            if (addressDTO.getIdCity() != null) {
+                city = cityRepository.findById(UUID.fromString(addressDTO.getIdCity())).orElse(null);
+            } else {
+                city = cityRepository.findByNameAndStateAbbreviation(addressDTO.getCity(), addressDTO.getState());
+            }
 
-                if (addressDTO.getCity().getId() != null) {
-                    city = cityRepository.findById(addressDTO.getCity().getId()).orElse(null);
-                } else {
-                    city = cityRepository.findByNameAndStateAbbreviation(addressDTO.getCity().getName(), addressDTO.getState().getAbbreviation());
-                }
-
-                if (city != null) {
-                    address.setCity(city);
-                } else {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "City not found!");
-                }
-
+            if (city != null) {
+                address.setCity(city);
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "City not found!");
             }
 
         }
