@@ -19,18 +19,18 @@ public class City extends RootEntity {
     @Column(name = "name", length = 100)
     private String name;
 
-    @Column(name = "id_country", length = 38, insertable = false, updatable = false)
+    @Column(name = "id_country", length = 38)
     private UUID idCountry;
 
     @ManyToOne
-    @JoinColumn(name = "id_country")
+    @JoinColumn(name = "id_country", insertable = false, updatable = false)
     private Country country;
 
-    @Column(name = "id_state", length = 38, insertable = false, updatable = false)
+    @Column(name = "id_state", length = 38)
     private UUID idState;
 
     @ManyToOne
-    @JoinColumn(name = "id_state")
+    @JoinColumn(name = "id_state", insertable = false, updatable = false)
     private State state;
 
     public City() {}
