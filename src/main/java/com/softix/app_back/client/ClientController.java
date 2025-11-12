@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("client")
+@RequestMapping("/client")
 public class ClientController {
 
     @Autowired
