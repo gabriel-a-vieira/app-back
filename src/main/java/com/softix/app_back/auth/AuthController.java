@@ -4,6 +4,7 @@ import com.softix.app_back.auth.request.LoginRequest;
 import com.softix.app_back.auth.request.RegisterUserRequest;
 import com.softix.app_back.auth.response.LoginResponse;
 import com.softix.app_back.auth.response.RegisterUserResponse;
+import com.softix.app_back.config.TokenConfig;
 import com.softix.app_back.user.User;
 import com.softix.app_back.user.UserRepository;
 import jakarta.validation.Valid;
@@ -30,7 +31,10 @@ public class AuthController {
     PasswordEncoder passwordEncoder;
 
     @Autowired
-    AuthenticationManager authenticationManager; //TODO try another way to inject this
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    TokenConfig tokenConfig;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
@@ -38,7 +42,10 @@ public class AuthController {
         UsernamePasswordAuthenticationToken userAndPass = new UsernamePasswordAuthenticationToken(request.email(), request.password());
         Authentication authentication = authenticationManager.authenticate(userAndPass);
 
-        return null;
+        User user = (User) authentication.getPrincipal();
+        String token = tokenConfig.generateToken(user);
+
+        return ResponseEntity.ok(new LoginResponse(token));
 
     }
 
