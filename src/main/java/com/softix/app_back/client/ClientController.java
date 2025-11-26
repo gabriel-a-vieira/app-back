@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -25,8 +24,8 @@ public class ClientController {
     }
 
     @GetMapping(path = "{id}")
-    public Optional<Client> getById(@PathVariable("id") UUID id) {
-        return clientRepository.findById(id);
+    public Client getById(@PathVariable("id") UUID id) {
+        return clientRepository.findById(id).orElse(null);
     }
 
     @PostMapping

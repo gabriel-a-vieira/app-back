@@ -1,13 +1,12 @@
 package com.softix.app_back.city;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.softix.app_back.client.ClientDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/city")
@@ -15,6 +14,19 @@ public class CityController {
 
     @Autowired
     CityService cityService;
+
+    @Autowired
+    CityRepository cityRepository;
+
+    @GetMapping
+    public List<City> findAll() {
+        return cityRepository.findAll();
+    }
+
+    @GetMapping(path = "{id}")
+    public City findById(@PathVariable("id") UUID id) {
+        return cityRepository.findById(id).orElse(null);
+    }
 
     @PostMapping
     public ResponseEntity post(@RequestBody String jsonBody) {
