@@ -15,9 +15,6 @@ public class CountryController {
     @Autowired
     CountryService countryService;
 
-    @Autowired
-    CountryRepository countryRepository;
-
     @PostMapping
     public ResponseEntity post(@RequestBody String jsonBody) {
 
