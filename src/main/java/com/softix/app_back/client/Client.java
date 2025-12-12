@@ -1,6 +1,6 @@
 package com.softix.app_back.client;
 
-import com.softix.app_back.address.Address;
+import utils.model.Person;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,17 +13,16 @@ import utils.model.RootEntity;
 @Table(name = "client")
 public class Client extends RootEntity {
 
-    @Column(name = "name", length = 150)
-    private String name;
+    @OneToOne
+    @JoinColumn(name = "person_id")
+    private Person person;
 
-    @Column(name = "email", length = 200)
-    private String email;
+    @Column(name = "preferred_payment_method")
+    private String preferredPaymentMethod;
 
-    @Column(name = "phone", length = 11)
-    private String phone;
+    @Column(name = "additional_notes")
+    private String additionalNotes;
 
-    @Embedded
-    private Address address;
 
     public Client() {}
 

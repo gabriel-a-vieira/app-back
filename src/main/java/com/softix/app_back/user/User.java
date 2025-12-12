@@ -1,7 +1,7 @@
 package com.softix.app_back.user;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import utils.model.Person;
+import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,6 +18,13 @@ public class User extends RootEntity implements UserDetails {
     private String name;
     private String email;
     private String password;
+
+    @OneToOne
+    @JoinColumn(name = "person_id")
+    private Person person;
+
+//    @Column(name = "roles") todo verify how it can be implemented, creating another table in my opinion its the best option, but we have to see, how jwt and spring security works with it
+//    private String roles;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
