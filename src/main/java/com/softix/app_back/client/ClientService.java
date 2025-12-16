@@ -4,6 +4,9 @@ import com.softix.app_back.address.Address;
 import com.softix.app_back.address.AddressDTO;
 import com.softix.app_back.city.City;
 import com.softix.app_back.city.CityRepository;
+import com.softix.app_back.person.Person;
+import com.softix.app_back.person.PersonRepository;
+import com.softix.app_back.person.PersonService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,15 +25,20 @@ public class ClientService {
     @Autowired
     CityRepository cityRepository;
 
+    @Autowired
+    PersonRepository personRepository;
+
+    @Autowired
+    PersonService personService;
+
     @Transactional
     public Client save(ClientDTO dto) {
 
         Client client = new Client();
 
-        client.setName(dto.getName());
-        client.setEmail(dto.getEmail());
-        client.setPhone(dto.getPhone());
-        client.setAddress(getAddress(dto.getAddress()));
+        client.setPerson(setPerson(client, dto));
+        client.setPreferredPaymentMethod(dto.getPrefferedPaymentMethod());
+        client.setAdditionalNotes(dto.getAdditionalNotes());
 
         clientRepository.save(client);
 
@@ -38,7 +46,31 @@ public class ClientService {
 
     }
 
-    @Transactional
+    private Person setPerson(Client client, ClientDTO dto) {
+
+        Person person = personRepository.findFirstByCpfCnpj(dto.getCpfCnpj());
+
+        if (person != null) {
+            client.setPerson(person);
+        } else {
+
+            person = new Person();
+
+            person.setCpfCnpj(dto.getCpfCnpj());
+            person.setName(dto.getName());
+            person.setPhone(dto.getPhone());
+            person.setGender(dto.getGender());
+            person.setBirthDate(dto.getBirthDate());
+            person.setAddress(getAddress(dto.getAddress()));
+
+            personService.save(person);
+
+        }
+
+        return person;
+
+    }
+
     public Address getAddress(AddressDTO addressDTO) {
 
         Address address = new Address();
@@ -64,7 +96,7 @@ public class ClientService {
             if (city != null) {
                 address.setCity(city);
             } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "City not found!");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade não encontrada!");
             }
 
         }

@@ -1,7 +1,10 @@
 package com.softix.app_back.user;
 
-import utils.model.Person;
-import jakarta.persistence.*;
+import com.softix.app_back.person.Person;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

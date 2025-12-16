@@ -1,22 +1,25 @@
-package utils.model;
+package com.softix.app_back.person;
 
 import com.softix.app_back.address.Address;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import lombok.Data;
+import utils.model.RootEntity;
 
 import java.util.Date;
 
 @Entity
+@Data
 @Table(name = "person")
 public class Person extends RootEntity {
 
     @Column(name = "name", length = 150)
     private String name;
 
-    @Column(name = "cpf", length = 11)
-    private String cpf;
+    @Column(name = "cpfCnpj", length = 11)
+    private String cpfCnpj;
 
     @Column(name = "phone", length = 11)
     private String phone;

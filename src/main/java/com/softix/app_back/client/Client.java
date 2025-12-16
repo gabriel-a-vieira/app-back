@@ -1,6 +1,7 @@
 package com.softix.app_back.client;
 
-import utils.model.Person;
+import com.softix.app_back.payment.PaymentMethod;
+import com.softix.app_back.person.Person;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,7 +19,7 @@ public class Client extends RootEntity {
     private Person person;
 
     @Column(name = "preferred_payment_method")
-    private String preferredPaymentMethod;
+    private PaymentMethod preferredPaymentMethod;
 
     @Column(name = "additional_notes")
     private String additionalNotes;
