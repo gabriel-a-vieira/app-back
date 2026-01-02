@@ -6,17 +6,22 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.BeanUtils;
-import utils.model.RootEntity;
+import utils.model.TenantEntity;
+
+import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "client")
-public class Client extends RootEntity {
+public class Client extends TenantEntity {
 
     @OneToOne
     @JoinColumn(name = "person_id")
     private Person person;
+
+    @Column(name = "person_id")
+    private UUID personId;
 
     @Column(name = "preferred_payment_method")
     private PaymentMethod preferredPaymentMethod;

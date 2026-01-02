@@ -15,9 +15,6 @@ public class RootEntity {
     @Column(name = "id", length = 38, nullable = false)
     private UUID id;
 
-    @Column(name = "company_id", length = 38)
-    private UUID companyId;
-
     @Column(name = "created_at", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;

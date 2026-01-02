@@ -8,7 +8,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import utils.model.RootEntity;
+import utils.model.TenantEntity;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "users")
-public class User extends RootEntity implements UserDetails {
+public class User extends TenantEntity implements UserDetails {
 
     private String name;
     private String email;

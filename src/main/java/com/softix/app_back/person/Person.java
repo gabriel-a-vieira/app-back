@@ -6,14 +6,14 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Data;
-import utils.model.RootEntity;
+import utils.model.TenantEntity;
 
 import java.util.Date;
 
 @Entity
 @Data
 @Table(name = "person")
-public class Person extends RootEntity {
+public class Person extends TenantEntity {
 
     @Column(name = "name", length = 150)
     private String name;

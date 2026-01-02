@@ -1,0 +1,24 @@
+package com.softix.app_back.company;
+
+public enum CompanyType {
+
+    BARBERSHOP,
+    BEAUTY_SALON,
+    HAIR_SALON,
+    AESTHETIC_CLINIC,
+    MEDICAL_CLINIC,
+    DENTAL_CLINIC,
+    PSYCHOLOGY_CLINIC,
+    PHYSIOTHERAPY,
+    NUTRITION,
+    VETERINARY,
+    PET_SHOP,
+    SPA,
+    FITNESS,
+    CONSULTING,
+    EDUCATION,
+    COACHING,
+    EVENT_SERVICE,
+    TECH_SUPPORT
+
+}
