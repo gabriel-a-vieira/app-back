@@ -20,7 +20,7 @@ public class Client extends TenantEntity {
     @JoinColumn(name = "person_id")
     private Person person;
 
-    @Column(name = "person_id", insertable=false, updatable=false)
+    @Column(name = "person_id", insertable = false, updatable = false)
     private UUID personId;
 
     @Column(name = "preferred_payment_method")
@@ -28,7 +28,6 @@ public class Client extends TenantEntity {
 
     @Column(name = "additional_notes")
     private String additionalNotes;
-
 
     public Client() {}
 

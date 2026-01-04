@@ -2,8 +2,10 @@ package com.softix.app_back.company;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import utils.model.RootEntity;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "company")

@@ -1,18 +1,18 @@
 package com.softix.app_back.user;
 
 import com.softix.app_back.person.Person;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import utils.model.TenantEntity;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 @Table(name = "users")
@@ -26,8 +26,12 @@ public class User extends TenantEntity implements UserDetails {
     @JoinColumn(name = "person_id")
     private Person person;
 
-//    @Column(name = "roles") todo verify how it can be implemented, creating another table in my opinion its the best option, but we have to see, how jwt and spring security works with it
-//    private String roles;
+    @Column(name = "person_id", insertable = false, updatable = false)
+    private UUID personId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private UserRole role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
