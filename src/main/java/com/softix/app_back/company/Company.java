@@ -22,7 +22,7 @@ public class Company extends RootEntity {
     @Enumerated(EnumType.STRING)
     private CompanyType type;
 
-    @Column(name = "type")
+    @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private CompanyStatus status;
 
