@@ -11,6 +11,6 @@ import java.util.UUID;
 public class TenantEntity extends RootEntity {
 
     @Column(name = "company_id", length = 38)
-    private UUID companyId;
+    private String companyId;
 
 }

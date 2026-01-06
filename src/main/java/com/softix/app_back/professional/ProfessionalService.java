@@ -97,7 +97,7 @@ public class ProfessionalService {
             City city = null;
 
             if (addressDTO.getIdCity() != null) {
-                city = cityRepository.findById(UUID.fromString(addressDTO.getIdCity())).orElse(null);
+                city = cityRepository.findById(addressDTO.getIdCity()).orElse(null);
             } else {
                 city = cityRepository.findByNameAndStateAbbreviation(addressDTO.getCity(), addressDTO.getState());
             }

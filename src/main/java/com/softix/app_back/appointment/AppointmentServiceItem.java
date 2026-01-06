@@ -5,8 +5,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import utils.model.TenantEntity;
 
-import java.util.UUID;
-
 @Data
 @Entity
 @Table(name = "appointment_service_item")
@@ -17,14 +15,14 @@ public class AppointmentServiceItem extends TenantEntity {
     private Appointment appointment;
 
     @Column(name = "appointment_id")
-    private UUID appointmentId;
+    private String appointmentId;
 
     @ManyToOne
     @JoinColumn(name = "service_offering_id", insertable = false, updatable = false)
     private ServiceOffering serviceOffering;
 
     @Column(name = "service_offering_id")
-    private UUID serviceOfferingId;
+    private String serviceOfferingId;
 
     @Column(name = "duration_minutes")
     private Integer durationMinutes;

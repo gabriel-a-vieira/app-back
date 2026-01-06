@@ -1,19 +1,17 @@
 package com.softix.app_back.professional;
 
 import com.softix.app_back.address.AddressDTO;
-import com.softix.app_back.country.Country;
 import com.softix.app_back.payment.PaymentMethod;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.util.Date;
-import java.util.UUID;
 
 @Data
 public class ProfessionalDTO {
 
-    private UUID id;
-    private UUID personId;
+    private String id;
+    private String personId;
     private ProfessionalStatus status;
 
     // Person

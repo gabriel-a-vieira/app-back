@@ -6,10 +6,10 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.UUID;
 
-public interface StateRepository extends JpaRepository<State, UUID> {
+public interface StateRepository extends JpaRepository<State, String> {
 
     @Query("SELECT s.id FROM State s WHERE s.name = :name AND s.abbreviation = :abbreviation")
-    UUID findIdByNameAndAbbreviation(@Param("name") String name, @Param("abbreviation") String abbreviation);
+    String findIdByNameAndAbbreviation(@Param("name") String name, @Param("abbreviation") String abbreviation);
 
 }
 

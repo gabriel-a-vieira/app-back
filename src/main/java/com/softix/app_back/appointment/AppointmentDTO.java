@@ -9,12 +9,12 @@ import java.util.UUID;
 @Data
 public class AppointmentDTO {
 
-    private UUID id;
-    private UUID clientId;
-    private UUID professionalId;
+    private String id;
+    private String clientId;
+    private String professionalId;
     private LocalDateTime startAt;
-    private List<UUID> serviceIds;
-    private UUID companyId;
-    private UUID userId;
+    private List<String> serviceIds;
+    private String companyId;
+    private String userId;
 
 }

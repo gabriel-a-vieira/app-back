@@ -16,7 +16,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class AppointmentService {
@@ -82,7 +81,7 @@ public class AppointmentService {
         appointment.setStartAt(startAt);
         appointment.setEndAt(endAt);
         appointment.setStatus(AppointmentStatus.SCHEDULED);
-        appointment.setCreatedBy(dto.getUserId());
+        appointment.setCreatedByUserId(dto.getUserId());
 
         List<AppointmentServiceItem> items = new ArrayList<>();
 
@@ -108,7 +107,7 @@ public class AppointmentService {
 
     }
 
-    private void validateAvailability(UUID professionalId, LocalDateTime start, LocalDateTime end) {
+    private void validateAvailability(String professionalId, LocalDateTime start, LocalDateTime end) {
 
         DayOfWeek day = start.getDayOfWeek();
 

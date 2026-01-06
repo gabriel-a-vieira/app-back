@@ -24,7 +24,7 @@ public class AppointmentController {
     }
 
     @GetMapping(path = "{id}")
-    public Appointment findById(@PathVariable("id") UUID id) {
+    public Appointment findById(@PathVariable("id") String id) {
         return appointmentRepository.findById(id).orElse(null);
     }
 

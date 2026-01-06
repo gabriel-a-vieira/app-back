@@ -24,7 +24,7 @@ public class ClientController {
     }
 
     @GetMapping(path = "{id}")
-    public Client getById(@PathVariable("id") UUID id) {
+    public Client getById(@PathVariable("id") String id) {
         return clientRepository.findById(id).orElse(null);
     }
 

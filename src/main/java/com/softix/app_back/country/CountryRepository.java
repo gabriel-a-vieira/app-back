@@ -6,9 +6,9 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.UUID;
 
-public interface CountryRepository extends JpaRepository<Country, UUID> {
+public interface CountryRepository extends JpaRepository<Country, String> {
 
     @Query("SELECT c.id FROM Country c WHERE c.name = :name")
-    UUID findIdByName(@Param("name") String name);
+    String findIdByName(@Param("name") String name);
 
 }

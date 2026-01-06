@@ -8,7 +8,6 @@ import utils.model.TenantEntity;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -21,7 +20,7 @@ public class Availability extends TenantEntity {
     private Professional professional;
 
     @Column(name = "professional_id", length = 38)
-    private UUID professionalId;
+    private String professionalId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "day_week")

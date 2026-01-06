@@ -25,7 +25,7 @@ public class AvailabilityController {
     }
 
     @GetMapping(path = "{id}")
-    public Availability findById(@PathVariable("id") UUID id) {
+    public Availability findById(@PathVariable("id") String id) {
         return availabilityRepository.findById(id).orElse(null);
     }
 
@@ -48,7 +48,7 @@ public class AvailabilityController {
     }
 
     @GetMapping(path = "by-day")
-    public List<Availability> list(@RequestParam UUID professionalId,
+    public List<Availability> list(@RequestParam String professionalId,
                                    @RequestParam DayOfWeek day) {
         return availabilityService.getByDay(professionalId, day);
     }

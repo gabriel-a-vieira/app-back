@@ -5,13 +5,12 @@ import org.springframework.beans.BeanUtils;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.UUID;
 
 @Data
 public class AvailabilityDTO {
 
-    private UUID id;
-    private UUID professionalId;
+    private String id;
+    private String professionalId;
     private String name;
     private DayOfWeek dayWeek;
     private LocalTime startTime;

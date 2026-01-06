@@ -9,7 +9,6 @@ import lombok.EqualsAndHashCode;
 import utils.model.TenantEntity;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -22,21 +21,21 @@ public class Appointment extends TenantEntity {
     private Client client;
 
     @Column(name = "client_id", length = 38, insertable = false, updatable = false)
-    private UUID clientId;
+    private String clientId;
 
     @ManyToOne
     @JoinColumn(name = "professional_id")
     private Professional professional;
 
     @Column(name = "professional_id", length = 38, insertable = false, updatable = false)
-    private UUID professionalId;
+    private String professionalId;
 
     @ManyToOne
     @JoinColumn(name = "service_offering_id", insertable = false, updatable = false)
     private ServiceOffering serviceOffering;
 
     @Column(name = "service_offering_id", length = 38, insertable = false, updatable = false)
-    private UUID serviceOfferingId;
+    private String serviceOfferingId;
 
     @Column(name = "start_at")
     private LocalDateTime startAt;

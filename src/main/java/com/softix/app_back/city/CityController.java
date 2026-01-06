@@ -24,7 +24,7 @@ public class CityController {
     }
 
     @GetMapping(path = "{id}")
-    public City findById(@PathVariable("id") UUID id) {
+    public City findById(@PathVariable("id") String id) {
         return cityRepository.findById(id).orElse(null);
     }
 

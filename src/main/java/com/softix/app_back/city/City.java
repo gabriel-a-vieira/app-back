@@ -8,7 +8,6 @@ import lombok.EqualsAndHashCode;
 import utils.model.RootEntity;
 
 import java.util.Date;
-import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -20,14 +19,14 @@ public class City extends RootEntity {
     private String name;
 
     @Column(name = "id_country", length = 38)
-    private UUID idCountry;
+    private String idCountry;
 
     @ManyToOne
     @JoinColumn(name = "id_country", insertable = false, updatable = false)
     private Country country;
 
     @Column(name = "id_state", length = 38)
-    private UUID idState;
+    private String idState;
 
     @ManyToOne
     @JoinColumn(name = "id_state", insertable = false, updatable = false)

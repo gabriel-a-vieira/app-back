@@ -8,8 +8,6 @@ import lombok.EqualsAndHashCode;
 import org.springframework.beans.BeanUtils;
 import utils.model.TenantEntity;
 
-import java.util.UUID;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
@@ -21,7 +19,7 @@ public class Client extends TenantEntity {
     private Person person;
 
     @Column(name = "person_id", insertable = false, updatable = false)
-    private UUID personId;
+    private String personId;
 
     @Column(name = "preferred_payment_method")
     private PaymentMethod preferredPaymentMethod;

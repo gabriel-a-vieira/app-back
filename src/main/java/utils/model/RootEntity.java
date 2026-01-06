@@ -13,7 +13,7 @@ public class RootEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", length = 38, nullable = false)
-    private UUID id;
+    private String id;
 
     @Column(name = "created_at", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -23,11 +23,11 @@ public class RootEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updatedAt;
 
-    @Column(name = "created_by", length = 38) //TODO After implement the User table, increase (nullable = false) here
-    private UUID createdBy;
+    @Column(name = "created_by_user_id", length = 38) //TODO After implement the User table, increase (nullable = false) here
+    private String createdByUserId;
 
-    @Column(name = "updated_by", length = 38)
-    private UUID updatedBy;
+    @Column(name = "updated_by_id", length = 38)
+    private String updatedById;
 
     @Version
     @Column(name = "version")
@@ -37,7 +37,7 @@ public class RootEntity {
     public void prePersist() {
 
         if (id == null) {
-            id = UUID.randomUUID();
+            id = String.valueOf(UUID.randomUUID());
         }
 
         if (getCreatedAt() == null) {

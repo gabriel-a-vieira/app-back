@@ -24,7 +24,7 @@ public class CompanyController {
     }
 
     @GetMapping(path = "{id}")
-    public Company findById(@PathVariable("id") UUID id) {
+    public Company findById(@PathVariable("id") String id) {
         return companyRepository.findById(id).orElse(null);
     }
 

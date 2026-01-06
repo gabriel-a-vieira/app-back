@@ -24,7 +24,7 @@ public class ServiceOfferingController {
     }
 
     @GetMapping(path = "{id}")
-    public ServiceOffering getById(@PathVariable("id") UUID id) {
+    public ServiceOffering getById(@PathVariable("id") String id) {
         return serviceOfferingRepository.findById(id).orElse(null);
     }
 

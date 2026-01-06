@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import utils.model.TenantEntity;
 
-import java.util.UUID;
-
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
@@ -19,7 +17,7 @@ public class Professional extends TenantEntity {
     private Person person;
 
     @Column(name = "person_id", insertable = false, updatable = false)
-    private UUID personId;
+    private String personId;
 
     @Column(name = "status")
     private ProfessionalStatus status;

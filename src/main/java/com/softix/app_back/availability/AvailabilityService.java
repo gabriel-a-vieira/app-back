@@ -45,7 +45,7 @@ public class AvailabilityService {
     }
 
     @Transactional
-    public List<Availability> getByDay(UUID professionalId, DayOfWeek day) {
+    public List<Availability> getByDay(String professionalId, DayOfWeek day) {
         return availabilityRepository.findByProfessionalIdAndDayWeek(professionalId, day);
     }
 

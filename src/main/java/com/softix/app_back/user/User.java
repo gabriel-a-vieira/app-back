@@ -10,7 +10,6 @@ import utils.model.TenantEntity;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -27,7 +26,7 @@ public class User extends TenantEntity implements UserDetails {
     private Person person;
 
     @Column(name = "person_id", insertable = false, updatable = false)
-    private UUID personId;
+    private String personId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")

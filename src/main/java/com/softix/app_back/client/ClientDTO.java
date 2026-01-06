@@ -6,12 +6,11 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.util.Date;
-import java.util.UUID;
 
 @Data
 public class ClientDTO {
 
-    private UUID id;
+    private String id;
     private String name;
     private String cpfCnpj;
     private String email;

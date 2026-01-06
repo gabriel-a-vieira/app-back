@@ -24,7 +24,7 @@ public class ProfessionalController {
     }
 
     @GetMapping(path = "{id}")
-    public Professional getById(@PathVariable("id") UUID id) {
+    public Professional getById(@PathVariable("id") String id) {
         return professionalRepository.findById(id).orElse(null);
     }
 

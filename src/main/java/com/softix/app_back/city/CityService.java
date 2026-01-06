@@ -30,7 +30,7 @@ public class CityService {
 
         if (dto.getState() != null) {
 
-            UUID idState;
+            String idState;
 
             if (StringUtils.isNotBlank(dto.getState().getName()) && StringUtils.isNotBlank(dto.getState().getAbbreviation())) {
                 idState = stateRepository.findIdByNameAndAbbreviation(dto.getState().getName(), dto.getState().getAbbreviation());
@@ -45,7 +45,7 @@ public class CityService {
 
         if (dto.getCountry() != null) {
 
-            UUID idCountry;
+            String idCountry;
 
             if (StringUtils.isNotBlank(dto.getCountry().getName())) {
                 idCountry = countryRepository.findIdByName(dto.getCountry().getName());

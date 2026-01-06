@@ -4,10 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.DayOfWeek;
 import java.util.List;
-import java.util.UUID;
 
-public interface AvailabilityRepository extends JpaRepository<Availability, UUID> {
+public interface AvailabilityRepository extends JpaRepository<Availability, String> {
 
-    List<Availability> findByProfessionalIdAndDayWeek(UUID professionalId, DayOfWeek dayWeek);
+    List<Availability> findByProfessionalIdAndDayWeek(String professionalId, DayOfWeek dayWeek);
 
 }

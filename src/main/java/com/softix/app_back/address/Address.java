@@ -7,8 +7,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.Data;
 
-import java.util.UUID;
-
 @Data
 @Embeddable
 public class Address {
