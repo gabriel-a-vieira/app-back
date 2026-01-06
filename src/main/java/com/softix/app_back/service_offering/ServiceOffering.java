@@ -26,4 +26,3 @@ public class ServiceOffering extends TenantEntity {
     private Double price;
 
 }
-

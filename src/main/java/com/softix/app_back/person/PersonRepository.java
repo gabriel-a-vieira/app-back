@@ -2,7 +2,10 @@ package com.softix.app_back.person;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PersonRepository extends JpaRepository<Person, Long> {
+import java.util.List;
+import java.util.UUID;
+
+public interface PersonRepository extends JpaRepository<Person, UUID> {
 
     Person findFirstByCpfCnpj(String cpfCnpj);
 
