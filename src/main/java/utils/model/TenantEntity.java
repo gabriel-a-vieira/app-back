@@ -4,8 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 
-import java.util.UUID;
-
 @Data
 @MappedSuperclass
 public class TenantEntity extends RootEntity {

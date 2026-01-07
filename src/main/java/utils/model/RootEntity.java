@@ -11,7 +11,7 @@ import java.util.UUID;
 public class RootEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+//    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", length = 38, nullable = false)
     private String id;
 

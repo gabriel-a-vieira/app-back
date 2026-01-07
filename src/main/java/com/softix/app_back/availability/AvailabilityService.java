@@ -9,7 +9,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class AvailabilityService {
