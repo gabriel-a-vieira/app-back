@@ -17,7 +17,7 @@ public class Company extends RootEntity {
     @Column(name = "trade_name")
     private String tradeName;
 
-    @Column(name = "cnpj", length = 11)
+    @Column(name = "cnpj", length = 14)
     private String cnpj;
 
     @Column(name = "type")
@@ -26,6 +26,6 @@ public class Company extends RootEntity {
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private CompanyStatus status;
+    private CompanyStatus status = CompanyStatus.ACTIVE;
 
 }

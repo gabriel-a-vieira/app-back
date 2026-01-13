@@ -19,7 +19,6 @@ public class CompanyService {
         company.setTradeName(dto.getTradeName());
         company.setCnpj(dto.getCnpj());
         company.setType(dto.getType());
-        company.setStatus(dto.getStatus());
 
         companyRepository.save(company);
 
