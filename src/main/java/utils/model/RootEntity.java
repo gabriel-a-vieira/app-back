@@ -33,7 +33,7 @@ public class RootEntity {
     private Integer version;
 
     @PrePersist
-    public void prePersist() {
+    protected void prePersistRoot() {
 
         if (id == null) {
             id = String.valueOf(UUID.randomUUID());
@@ -43,7 +43,10 @@ public class RootEntity {
             setCreatedAt(new Date());
         }
 
-        //TODO Implement user creation field logic when the table is created
+        if (SecurityUtils.currentUser() != null) {
+            createdByUserId = SecurityUtils.userId();
+        }
 
     }
+
 }

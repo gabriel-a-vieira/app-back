@@ -7,6 +7,7 @@ import com.softix.app_back.auth.response.RegisterUserResponse;
 import com.softix.app_back.config.TokenConfig;
 import com.softix.app_back.user.User;
 import com.softix.app_back.user.UserRepository;
+import com.softix.app_back.user.UserRole;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -56,6 +57,8 @@ public class AuthController {
 
         newUser.setName(request.name());
         newUser.setEmail(request.email());
+        newUser.setRole(UserRole.valueOf(request.role()));
+        newUser.setCompanyId(request.companyId());
         newUser.setPassword(passwordEncoder.encode(request.password()));
 
         userRepository.save(newUser);

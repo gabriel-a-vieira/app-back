@@ -2,6 +2,7 @@ package utils.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
 import lombok.Data;
 
 @Data
@@ -10,5 +11,16 @@ public class TenantEntity extends RootEntity {
 
     @Column(name = "company_id", length = 38)
     private String companyId;
+
+    @PrePersist
+    protected void prePersistTenant() {
+
+        super.prePersistRoot();
+
+        if (SecurityUtils.currentUser() != null) {
+            this.companyId = SecurityUtils.companyId();
+        }
+
+    }
 
 }
