@@ -31,5 +31,5 @@ public class Availability extends TenantEntity {
 
     @Column(name = "end_time")
     private LocalTime endTime;
-}
 
+}

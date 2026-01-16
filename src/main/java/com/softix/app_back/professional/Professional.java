@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import utils.model.TenantEntity;
 
+import static com.softix.app_back.professional.ProfessionalStatus.ACTIVE;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
@@ -20,7 +22,7 @@ public class Professional extends TenantEntity {
     private String personId;
 
     @Column(name = "status")
-    private ProfessionalStatus status;
+    private ProfessionalStatus status = ACTIVE;
 
 }
 

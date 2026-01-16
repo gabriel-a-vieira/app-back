@@ -83,7 +83,7 @@ public class ClientService {
             address.setLatitude(addressDTO.getLatitude());
             address.setLongitude(addressDTO.getLongitude());
 
-            City city = null;
+            City city;
 
             if (addressDTO.getIdCity() != null) {
                 city = cityRepository.findById(addressDTO.getIdCity()).orElse(null);
