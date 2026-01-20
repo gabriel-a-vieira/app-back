@@ -9,8 +9,10 @@ import com.softix.app_back.professional.ProfessionalRepository;
 import com.softix.app_back.service_offering.ServiceOffering;
 import com.softix.app_back.service_offering.ServiceOfferingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
@@ -45,19 +47,19 @@ public class AppointmentService {
     @Transactional
     public Appointment save(AppointmentDTO dto) {
 
-        Client client = clientRepository.findById(dto.getClientId()).orElseThrow(() -> new RuntimeException("Client not found"));
+        Client client = clientRepository.findById(dto.getClientId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado!"));
 
-        Professional professional = professionalRepository.findById(dto.getProfessionalId()).orElseThrow(() -> new RuntimeException("Professional not found"));
+        Professional professional = professionalRepository.findById(dto.getProfessionalId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profissional não encontrado!"));
 
-        if (!client.getCompanyId().equals(dto.getCompanyId()) || !professional.getCompanyId().equals(dto.getCompanyId())) {
-            throw new RuntimeException("Invalid tenant access");
-        }
+//        if (!client.getCompanyId().equals(dto.getCompanyId()) || !professional.getCompanyId().equals(dto.getCompanyId())) {
+//            throw new RuntimeException("Invalid tenant access");
+//        } TODO remove this conditional, because it has to be implemented something on the queries, to validate in the where section de companyId, not on every API, it has to be something default for the queries, and if doesnt want to validate the companyId just declare some parameter to deny it
 
         List<ServiceOffering> services = serviceOfferingRepository.findAllById(dto.getServiceIds());
 
         if (services.isEmpty()) {
             throw new RuntimeException("No services selected");
-        }
+        } //TODO remove all this RuntimeExceptions because it has to be a 400 return like the ResponseStatusException
 
         int totalMinutes = services.stream()
                 .mapToInt(ServiceOffering::getDurationMinutes)
