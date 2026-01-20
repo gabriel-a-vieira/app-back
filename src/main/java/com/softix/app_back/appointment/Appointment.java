@@ -8,7 +8,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import utils.model.TenantEntity;
 
-import java.time.LocalDateTime;
+import java.util.Date;
+
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -38,10 +39,10 @@ public class Appointment extends TenantEntity {
     private String serviceOfferingId;
 
     @Column(name = "start_at")
-    private LocalDateTime startAt;
+    private Date startAt;
 
     @Column(name = "ent_at")
-    private LocalDateTime endAt;
+    private Date endAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")

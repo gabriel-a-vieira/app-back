@@ -13,8 +13,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
-import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -22,6 +25,9 @@ public class AppointmentService {
 
     @Autowired
     AppointmentRepository appointmentRepository;
+
+    @Autowired
+    AppointmentServiceItemRepository appointmentServiceItemRepository;
 
     @Autowired
     ClientRepository clientRepository;
@@ -57,8 +63,8 @@ public class AppointmentService {
                 .mapToInt(ServiceOffering::getDurationMinutes)
                 .sum();
 
-        LocalDateTime startAt = dto.getStartAt();
-        LocalDateTime endAt = startAt.plusMinutes(totalMinutes);
+        Date startAt = dto.getStartAt();
+        Date endAt = Date.from(startAt.toInstant().plusSeconds(totalMinutes * 60L));
 
         validateAvailability(professional.getId(), startAt, endAt);
 
@@ -84,8 +90,8 @@ public class AppointmentService {
         appointment.setCreatedByUserId(dto.getUserId());
 
         List<AppointmentServiceItem> items = new ArrayList<>();
-
         int order = 1;
+
         for (ServiceOffering service : services) {
 
             AppointmentServiceItem item = new AppointmentServiceItem();
@@ -97,9 +103,8 @@ public class AppointmentService {
             item.setPrice(service.getPrice());
             item.setExecutionOrder(order++);
 
+            appointmentServiceItemRepository.save(item);
             items.add(item);
-
-            //calls the method to persist the AppointmentServiceItem entity
 
         }
 
@@ -107,15 +112,22 @@ public class AppointmentService {
 
     }
 
-    private void validateAvailability(String professionalId, LocalDateTime start, LocalDateTime end) {
+    private void validateAvailability(String professionalId, Date start, Date end) {
 
-        DayOfWeek day = start.getDayOfWeek();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(start);
 
-        List<Availability> availabilities = availabilityRepository.findByProfessionalIdAndDayWeek(professionalId,day);
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        DayOfWeek day = DayOfWeek.of(dayOfWeek);
+
+        List<Availability> availabilities = availabilityRepository.findByProfessionalIdAndDayWeek(professionalId, day);
+
+        LocalTime startTime = start.toInstant().atZone(ZoneId.systemDefault()).toLocalTime();
+        LocalTime endTime = end.toInstant().atZone(ZoneId.systemDefault()).toLocalTime();
 
         boolean fits = availabilities.stream().anyMatch(a ->
-                !start.toLocalTime().isBefore(a.getStartTime()) &&
-                        !end.toLocalTime().isAfter(a.getEndTime())
+                !startTime.isBefore(a.getStartTime()) &&
+                        !endTime.isAfter(a.getEndTime())
         );
 
         if (!fits) {
