@@ -3,7 +3,7 @@ package com.softix.app_back.professional;
 import com.softix.app_back.service_offering.ServiceOffering;
 import jakarta.persistence.*;
 import lombok.Data;
-import utils.model.TenantEntity;
+import utils.model.tenant.TenantEntity;
 
 @Data
 @Entity

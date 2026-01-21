@@ -22,6 +22,11 @@ public class ClientController {
         return clientRepository.findAll();
     }
 
+    @GetMapping(path = "person/{personName}")
+    public Client findByPersonName(@PathVariable("personName") String personName) {
+        return clientRepository.findClientByPersonName(personName);
+    }
+
     @GetMapping(path = "{id}")
     public Client getById(@PathVariable("id") String id) {
         return clientRepository.findById(id).orElse(null);

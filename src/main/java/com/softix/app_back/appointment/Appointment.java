@@ -6,7 +6,7 @@ import com.softix.app_back.service_offering.ServiceOffering;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import utils.model.TenantEntity;
+import utils.model.tenant.TenantEntity;
 
 import java.util.Date;
 

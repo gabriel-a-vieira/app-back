@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.BeanUtils;
-import utils.model.TenantEntity;
+import utils.model.tenant.TenantEntity;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

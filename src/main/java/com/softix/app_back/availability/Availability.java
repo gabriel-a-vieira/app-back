@@ -4,7 +4,7 @@ import com.softix.app_back.professional.Professional;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import utils.model.TenantEntity;
+import utils.model.tenant.TenantEntity;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;

@@ -7,7 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import utils.model.TenantEntity;
+import utils.model.tenant.TenantEntity;
 
 import java.util.Date;
 

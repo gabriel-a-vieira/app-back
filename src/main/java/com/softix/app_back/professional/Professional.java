@@ -4,7 +4,7 @@ import com.softix.app_back.person.Person;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import utils.model.TenantEntity;
+import utils.model.tenant.TenantEntity;
 
 import static com.softix.app_back.professional.ProfessionalStatus.ACTIVE;
 

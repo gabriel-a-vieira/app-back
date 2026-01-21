@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import utils.model.TenantEntity;
+import utils.model.tenant.TenantEntity;
 
 import java.util.Collection;
 import java.util.List;
