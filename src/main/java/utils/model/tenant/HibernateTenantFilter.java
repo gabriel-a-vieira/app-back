@@ -7,10 +7,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 
 @Component
 public class HibernateTenantFilter extends OncePerRequestFilter {
@@ -28,33 +28,18 @@ public class HibernateTenantFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
 
-        Method method = getMethodFromRequest(request);
+        HandlerMethod handlerMethod = (HandlerMethod) request.getAttribute(HandlerMapping.BEST_MATCHING_HANDLER_ATTRIBUTE);
 
-        tenantFilterEnabler.enable(method);  // Ativa ou desativa o filtro com base na anotação
+        if (handlerMethod != null) {
+            tenantFilterEnabler.enable(handlerMethod.getMethod());
+        }
 
         try {
             filterChain.doFilter(request, response);
         } finally {
-            tenantFilterEnabler.disable();  // Desativa o filtro após a execução
+            tenantFilterEnabler.disable();
         }
-
-    }
-
-    private Method getMethodFromRequest(HttpServletRequest request) {
-
-        String methodName = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE).toString();
-
-        try {
-            return this.getClass().getMethod(methodName);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-
-        return null;
 
     }
 
 }
-
-
-

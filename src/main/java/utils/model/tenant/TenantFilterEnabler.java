@@ -23,12 +23,13 @@ public class TenantFilterEnabler {
 
         JWTUserData user = SecurityUtils.currentUser();
 
-        if (user == null) {
+        if (user == null || user.companyId() == null) {
             return;
         }
 
         Session session = entityManager.unwrap(Session.class);
 
+        // Activates the companyId filter
         session.enableFilter("tenantFilter")
                 .setParameter("companyId", user.companyId());
 
@@ -36,6 +37,7 @@ public class TenantFilterEnabler {
 
     public void disable() {
 
+        // Disable the filter in the end of the request
         Session session = entityManager.unwrap(Session.class);
         session.disableFilter("tenantFilter");
 
