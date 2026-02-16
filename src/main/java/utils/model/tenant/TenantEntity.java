@@ -8,7 +8,7 @@ import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 import utils.model.RootEntity;
-import utils.model.SecurityUtils;
+import utils.security.SecurityUtils;
 
 @Data
 @MappedSuperclass

@@ -2,6 +2,7 @@ package utils.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import utils.security.SecurityUtils;
 
 import java.util.Date;
 import java.util.UUID;

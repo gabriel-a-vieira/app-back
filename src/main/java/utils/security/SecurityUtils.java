@@ -1,4 +1,4 @@
-package utils.model;
+package utils.security;
 
 import com.softix.app_back.config.JWTUserData;
 import org.springframework.security.core.Authentication;
