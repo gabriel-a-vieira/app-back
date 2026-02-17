@@ -2,11 +2,17 @@ package com.softix.app_back.config;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.hibernate.Session;
 import org.springframework.stereotype.Component;
+import utils.model.tenant.IgnoreTenantFilter;
 import utils.security.SecurityUtils;
+
+import java.lang.reflect.Method;
 
 @Aspect
 @Component
@@ -15,21 +21,50 @@ public class TenantAspect {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Before("execution(* com.softix.app_back..*Repository.*(..)) || execution(* com.softix.app_back..*Service.*(..))")
-    public void enableTenantFilter() {
+    @Pointcut("execution(* com.softix.app_back..*Repository.*(..)) " +
+            "|| execution(* com.softix.app_back..*Service.*(..)) " +
+            "|| execution(* com.softix.app_back..*Controller.*(..))")
+    public void appLayers() {}
 
-        if (SecurityUtils.currentUser() != null) {
+    @Before("appLayers()")
+    public void manageTenantFilter(JoinPoint joinPoint) {
 
-            String companyId = SecurityUtils.companyId();
+        Session session = entityManager.unwrap(Session.class);
 
-            if (companyId != null) {
+        boolean ignore = checkIgnoreAnnotation(joinPoint);
 
-                Session session = entityManager.unwrap(Session.class);
-                session.enableFilter("tenantFilter").setParameter("companyId", companyId);
+        if (ignore) {
+            session.disableFilter("tenantFilter");
+        } else {
+
+            if (SecurityUtils.currentUser() != null) {
+
+                String companyId = SecurityUtils.companyId();
+
+                if (companyId != null) {
+                    session.enableFilter("tenantFilter").setParameter("companyId", companyId);
+                }
 
             }
 
         }
+
+    }
+
+    private boolean checkIgnoreAnnotation(JoinPoint joinPoint) {
+
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        Method method = signature.getMethod();
+
+        if (method.isAnnotationPresent(IgnoreTenantFilter.class)) return true;
+
+        if (joinPoint.getTarget().getClass().isAnnotationPresent(IgnoreTenantFilter.class)) return true;
+
+        for (Class<?> iface : joinPoint.getTarget().getClass().getInterfaces()) {
+            if (iface.isAnnotationPresent(IgnoreTenantFilter.class)) return true;
+        }
+
+        return false;
 
     }
 
