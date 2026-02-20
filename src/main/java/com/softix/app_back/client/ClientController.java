@@ -50,11 +50,6 @@ public class ClientController {
 
     }
 
-    @PutMapping
-    public String put() {
-        return "PUT";
-    }
-
     @DeleteMapping
     public String delete() {
         return "DELETE";
