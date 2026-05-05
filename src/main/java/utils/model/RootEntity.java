@@ -26,8 +26,8 @@ public class RootEntity {
     @Column(name = "created_by_user_id", length = 38) //TODO After implement the User table, increase (nullable = false) here
     private String createdByUserId;
 
-    @Column(name = "updated_by_id", length = 38)
-    private String updatedById;
+    @Column(name = "updated_by_user_id", length = 38)
+    private String updatedByUserId;
 
     @Version
     @Column(name = "version")
