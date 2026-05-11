@@ -2,6 +2,9 @@ package com.softix.app_back.company;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,6 +46,22 @@ public class CompanyController {
 
         return ResponseEntity.ok(companyService.save(dto));
 
+    }
+
+    @GetMapping("/companies/home-page")
+    public Page<CompanyResponse> findCompanies(@RequestParam(defaultValue = "0") int page,
+                                               @RequestParam(defaultValue = "8") int size,
+                                               @RequestParam(required = false) CompanyType type,
+                                               @RequestParam(required = false) String search) {
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
+        return companyService.findPublicCompanies(type, search, pageRequest);
+
+    }
+
+    @GetMapping("/companies/types")
+    public List<CompanyTypeResponse> findCompanyTypes() {
+        return companyService.findCompanyTypes();
     }
 
 }
