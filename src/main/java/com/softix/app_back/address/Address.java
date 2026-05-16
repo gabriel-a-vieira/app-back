@@ -17,7 +17,7 @@ public class Address {
     @Column(name = "number", length = 15)
     private String number;
 
-    @Column(name = "postalCode", length = 8)
+    @Column(name = "postal_code", length = 8)
     private String postalCode;
 
     @Column(name = "complement", length = 200)

@@ -1,8 +1,10 @@
 package com.softix.app_back.auth.request;
 
+import com.softix.app_back.user.UserRole;
 import jakarta.validation.constraints.NotEmpty;
 
 public record RegisterUserRequest(@NotEmpty(message = "Nome é obrigatório") String name,
                                   @NotEmpty(message = "E-mail é obrigatório") String email,
-                                  @NotEmpty(message = "Senha é obrigatória") String password) {
+                                  @NotEmpty(message = "Senha é obrigatória") String password,
+                                  UserRole role) {
 }

@@ -1,5 +1,6 @@
 package com.softix.app_back.company;
 
+import com.softix.app_back.address.AddressDTO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
@@ -11,8 +12,15 @@ public class CompanyDTO {
     private String tradeName;
     private String cnpj;
     private CompanyType type;
-    private CompanyStatus status;
 
+    private AddressDTO address;
+
+    private String imageUrl;
+    private String instagramUrl;
+    private String facebookUrl;
+    private String websiteUrl;
+    private String tiktokUrl;
+    
     public CompanyDTO() {}
 
     public CompanyDTO(Company company) {

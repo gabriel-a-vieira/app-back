@@ -1,5 +1,6 @@
 package com.softix.app_back.company;
 
+import com.softix.app_back.address.Address;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,5 +28,23 @@ public class Company extends RootEntity {
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     private CompanyStatus status = CompanyStatus.ACTIVE;
+
+    @Embedded
+    private Address address;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "instagram_url")
+    private String instagramUrl;
+
+    @Column(name = "facebook_url")
+    private String facebookUrl;
+
+    @Column(name = "website_url")
+    private String websiteUrl;
+
+    @Column(name = "tiktok_url")
+    private String tiktokUrl;
 
 }

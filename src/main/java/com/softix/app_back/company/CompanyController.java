@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,20 +32,11 @@ public class CompanyController {
     }
 
     @PostMapping
-    public ResponseEntity post(@RequestBody String jsonBody) {
+    public ResponseEntity<CompanyResponse> post(@RequestBody CompanyDTO dto) {
 
-        if (jsonBody == null) return ResponseEntity.badRequest().body("Invalid JSON");
+        Company company = companyService.save(dto);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        CompanyDTO dto;
-
-        try {
-            dto = objectMapper.readValue(jsonBody, CompanyDTO.class);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error parsing JSON");
-        }
-
-        return ResponseEntity.ok(companyService.save(dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(CompanyResponse.fromEntity(company));
 
     }
 

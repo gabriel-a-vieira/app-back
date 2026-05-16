@@ -40,13 +40,15 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
 
-        UsernamePasswordAuthenticationToken userAndPass = new UsernamePasswordAuthenticationToken(request.email(), request.password());
+        UsernamePasswordAuthenticationToken userAndPass =
+                new UsernamePasswordAuthenticationToken(request.email(), request.password());
+
         Authentication authentication = authenticationManager.authenticate(userAndPass);
 
         User user = (User) authentication.getPrincipal();
         String token = tokenConfig.generateToken(user);
 
-        return ResponseEntity.ok(new LoginResponse(token, user.getName(), user.getEmail()));
+        return ResponseEntity.ok(new LoginResponse(token,user.getName(),user.getEmail(),user.getRole().name()));
 
     }
 
@@ -57,7 +59,7 @@ public class AuthController {
 
         newUser.setName(request.name());
         newUser.setEmail(request.email());
-        newUser.setRole(UserRole.CLIENT);
+        newUser.setRole(request.role() != null ? request.role() : UserRole.CLIENT);
         newUser.setPassword(passwordEncoder.encode(request.password()));
 
         userRepository.save(newUser);

@@ -2,9 +2,9 @@ package com.softix.app_back.user;
 
 public enum UserRole {
 
-    ADMIN,
+    MASTER_ADMIN,
+    COMPANY_ADMIN,
     CLIENT,
     PROFESSIONAL
 
 }
-
