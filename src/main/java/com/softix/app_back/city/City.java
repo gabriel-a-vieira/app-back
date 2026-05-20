@@ -38,14 +38,14 @@ public class City extends RootEntity {
     public void prePersist() {
 
         if (getCountry() != null) {
-            setIdCountry(idCountry);
+            setIdCountry(getCountry().getId());
         }
 
         if (getState() != null) {
-            setIdState(getIdState());
+            setIdState(getState().getId());
         }
 
-        if (getCreatedAt() == null) { //TODO Verify why its not working only in this table to call @PrePersist from RootEntity, i have to put the createdAt logic here, because its non-null field
+        if (getCreatedAt() == null) {
             setCreatedAt(new Date());
         }
 

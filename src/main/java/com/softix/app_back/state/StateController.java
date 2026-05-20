@@ -1,12 +1,12 @@
 package com.softix.app_back.state;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.softix.app_back.company.Company;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/state")
@@ -14,6 +14,14 @@ public class StateController {
 
     @Autowired
     StateService stateService;
+
+    @Autowired
+    StateRepository stateRepository;
+
+    @GetMapping
+    public List<State> findAll() {
+        return stateRepository.findAll();
+    }
 
     @PostMapping
     public ResponseEntity post(@RequestBody String jsonBody) {

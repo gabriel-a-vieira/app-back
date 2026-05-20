@@ -17,6 +17,9 @@ public class Country extends RootEntity {
     @Column(name = "name", length = 100)
     private String name;
 
+    @Column(name = "abbreviation", length = 5)
+    private String abbreviation;
+
     public Country() {}
 
     public Country(CountryDTO dto) {
