@@ -1,10 +1,14 @@
 package com.softix.app_back.professional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -14,34 +18,43 @@ public class ProfessionalController {
     @Autowired
     ProfessionalService professionalService;
 
-    @Autowired
-    ProfessionalRepository professionalRepository;
-
     @GetMapping
-    public List<Professional> getAll() {
-        return professionalRepository.findAll();
+    public Page<ProfessionalResponse> findAll(@RequestParam(required = false) String search,
+                                              @RequestParam(defaultValue = "0") int page,
+                                              @RequestParam(defaultValue = "10") int size) {
+
+        PageRequest pageRequest = PageRequest.of(page,size,Sort.by(Sort.Direction.DESC, "createdAt"));
+        return professionalService.findAll(search, pageRequest);
+
     }
 
-    @GetMapping(path = "{id}")
-    public Professional getById(@PathVariable("id") String id) {
-        return professionalRepository.findById(id).orElse(null);
+    @GetMapping("{id}")
+    public ResponseEntity<ProfessionalResponse> findById(@PathVariable String id) {
+        return ResponseEntity.ok(professionalService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity create(@RequestBody String jsonBody) {
+    public ResponseEntity<ProfessionalResponse> save(@Valid @RequestBody ProfessionalDTO dto) {
 
-        if (jsonBody == null) return ResponseEntity.badRequest().body("Invalid/Null JSON");
+        Professional professional = professionalService.save(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ProfessionalResponse.fromEntity(professional));
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        ProfessionalDTO dto;
+    }
 
-        try {
-            dto = objectMapper.readValue(jsonBody, ProfessionalDTO.class);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error parsing JSON");
-        }
+    @PutMapping("{id}")
+    public ResponseEntity<ProfessionalResponse> update(@PathVariable String id,
+                                                       @Valid @RequestBody ProfessionalDTO dto) {
 
-        return ResponseEntity.ok(professionalService.save(dto));
+        Professional professional = professionalService.update(id, dto);
+        return ResponseEntity.ok(ProfessionalResponse.fromEntity(professional));
+
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteMany(@RequestBody List<String> ids) {
+
+        professionalService.deleteMany(ids);
+        return ResponseEntity.noContent().build();
 
     }
 
