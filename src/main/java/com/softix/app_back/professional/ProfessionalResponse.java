@@ -19,6 +19,7 @@ public record ProfessionalResponse(
         String postalCode,
         String complement,
         String neighborhood,
+        String cityId,
         String city,
         String state
 ) {
@@ -28,11 +29,13 @@ public record ProfessionalResponse(
         Person person = professional.getPerson();
         Address address = person != null ? person.getAddress() : null;
 
+        String cityId = null;
         String cityName = null;
         String stateAbbreviation = null;
 
         if (address != null && address.getCity() != null) {
 
+            cityId = address.getCity().getId();
             cityName = address.getCity().getName();
 
             if (address.getCity().getState() != null) {
@@ -55,6 +58,7 @@ public record ProfessionalResponse(
                 address != null ? address.getPostalCode() : null,
                 address != null ? address.getComplement() : null,
                 address != null ? address.getNeighborhood() : null,
+                cityId,
                 cityName,
                 stateAbbreviation
         );

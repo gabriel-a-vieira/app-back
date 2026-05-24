@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class CityService {
 
@@ -58,6 +60,14 @@ public class CityService {
 
         return cityRepository.save(city);
 
+    }
+
+    @Transactional
+    public List<CityResponse> findByState(String state) {
+        return cityRepository.findByStateAbbreviationIgnoreCaseOrderByNameAsc(state)
+                .stream()
+                .map(CityResponse::fromEntity)
+                .toList();
     }
 
 }

@@ -45,4 +45,9 @@ public class CityController {
 
     }
 
+    @GetMapping(path = "/state")
+    public List<CityResponse> findByState(@RequestParam String state) {
+        return cityService.findByState(state);
+    }
+
 }

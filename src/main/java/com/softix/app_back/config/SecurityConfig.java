@@ -34,6 +34,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/company/companies/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/state", "/state/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/city", "/city/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

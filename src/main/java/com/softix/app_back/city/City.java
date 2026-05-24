@@ -18,6 +18,15 @@ public class City extends RootEntity {
     @Column(name = "name", length = 100)
     private String name;
 
+    @Column(name = "tom_code", length = 10)
+    private String tomCode;
+
+    @Column(name = "ibge_code", length = 10)
+    private String ibgeCode;
+
+    @Column(name = "tom_name", length = 100)
+    private String tomName;
+
     @Column(name = "id_country", length = 38)
     private String idCountry;
 
