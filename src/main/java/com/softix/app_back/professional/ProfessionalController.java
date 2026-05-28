@@ -3,6 +3,7 @@ package com.softix.app_back.professional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +21,18 @@ public class ProfessionalController {
 
     @GetMapping
     public Page<ProfessionalResponse> findAll(@RequestParam(required = false) String search,
+                                              @RequestParam(required = false) String name,
+                                              @RequestParam(required = false) String cpfCnpj,
+                                              @RequestParam(required = false) String phone,
+                                              @RequestParam(required = false) String city,
+                                              @RequestParam(required = false) String state,
+                                              @RequestParam(required = false) String status,
                                               @RequestParam(defaultValue = "0") int page,
                                               @RequestParam(defaultValue = "10") int size) {
 
-        PageRequest pageRequest = PageRequest.of(page,size,Sort.by(Sort.Direction.DESC, "createdAt"));
-        return professionalService.findAll(search, pageRequest);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        return professionalService.findAll(search, name, cpfCnpj, phone, city, state, status, pageable);
 
     }
 

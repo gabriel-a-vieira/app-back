@@ -36,17 +36,18 @@ public class ProfessionalService {
     @Autowired
     CityRepository cityRepository;
 
-    public Page<ProfessionalResponse> findAll(String search, Pageable pageable) {
+    public Page<ProfessionalResponse> findAll(String search, String name, String cpfCnpj,
+                                              String phone, String city, String state,
+                                              String status, Pageable pageable) {
 
-        Page<Professional> professionals;
+        ProfessionalStatus professionalStatus = null;
 
-        if (StringUtils.isBlank(search)) {
-            professionals = professionalRepository.findByStatus(ACTIVE, pageable);
-        } else {
-            professionals = professionalRepository.findByStatusAndPersonNameContainingIgnoreCase(ACTIVE,search.trim(),pageable);
+        if (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)) {
+            professionalStatus = ProfessionalStatus.valueOf(status.toUpperCase());
         }
 
-        return professionals.map(ProfessionalResponse::fromEntity);
+        return professionalRepository.findAdvanced(search, name, cpfCnpj, phone, city, state, professionalStatus, pageable)
+                .map(ProfessionalResponse::fromEntity);
 
     }
 
