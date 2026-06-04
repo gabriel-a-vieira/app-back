@@ -16,4 +16,8 @@ public interface UserRepository extends JpaRepository<User, String> {
     @Query("SELECT u FROM User u")
     List<User> findAllUnfiltered();
 
+    UserDetails findByEmail(String email);
+
+    boolean existsByEmailIgnoreCase(String email);
+
 }

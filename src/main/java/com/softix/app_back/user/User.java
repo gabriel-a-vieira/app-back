@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import utils.model.tenant.TenantEntity;
 
@@ -34,7 +35,13 @@ public class User extends TenantEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+
+        if (role == null) {
+            return List.of();
+        }
+
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+
     }
 
     @Override

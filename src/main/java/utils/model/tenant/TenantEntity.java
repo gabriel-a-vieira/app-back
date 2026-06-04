@@ -12,14 +12,8 @@ import utils.security.SecurityUtils;
 
 @Data
 @MappedSuperclass
-@FilterDef(
-        name = "tenantFilter",
-        parameters = @ParamDef(name = "companyId", type = String.class)
-)
-@Filter(
-        name = "tenantFilter",
-        condition = "company_id = :companyId"
-)
+@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "companyId", type = String.class))
+@Filter(name = "tenantFilter", condition = "company_id = :companyId")
 public class TenantEntity extends RootEntity {
 
     @Column(name = "company_id", length = 38)
@@ -30,7 +24,7 @@ public class TenantEntity extends RootEntity {
 
         super.prePersistRoot();
 
-        if (SecurityUtils.currentUser() != null) {
+        if (this.companyId == null && SecurityUtils.currentUser() != null && SecurityUtils.companyId() != null) {
             this.companyId = SecurityUtils.companyId();
         }
 
