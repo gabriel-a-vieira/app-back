@@ -21,11 +21,16 @@ public class Client extends TenantEntity {
     @Column(name = "person_id", insertable = false, updatable = false)
     private String personId;
 
-    @Column(name = "preferred_payment_method")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "preferred_payment_method", length = 50)
     private PaymentMethod preferredPaymentMethod;
 
     @Column(name = "additional_notes")
     private String additionalNotes;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private ClientStatus status = ClientStatus.ACTIVE;
 
     public Client() {}
 
