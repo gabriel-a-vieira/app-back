@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import utils.security.SecurityUtils;
 
 import java.util.List;
 
@@ -51,9 +52,8 @@ public class ClientService {
             String companyId,
             Pageable pageable
     ) {
-        User currentUser = getCurrentUser();
 
-        String resolvedCompanyId = resolveCompanyIdForQuery(currentUser, companyId);
+        String resolvedCompanyId = SecurityUtils.resolveCompanyId(companyId);
 
         ClientStatus clientStatus = null;
 
@@ -88,18 +88,13 @@ public class ClientService {
                         "Cliente nao encontrado"
                 ));
 
-        validateCanAccessClient(client);
-
         return ClientResponse.fromEntity(client);
     }
 
     @Transactional
     public ClientResponse save(ClientRequest request) {
-        User currentUser = getCurrentUser();
 
-        validateCanManageClients(currentUser);
-
-        String companyId = resolveCompanyIdForCreate(currentUser, request.companyId());
+        String companyId = SecurityUtils.resolveCompanyId(request.companyId());
 
         if (
                 request.cpfCnpj() != null &&
@@ -127,17 +122,12 @@ public class ClientService {
 
     @Transactional
     public ClientResponse update(String id, ClientRequest request) {
-        User currentUser = getCurrentUser();
-
-        validateCanManageClients(currentUser);
 
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Cliente nao encontrado"
                 ));
-
-        validateCanAccessClient(client);
 
         String cpfCnpj = onlyNumbers(request.cpfCnpj());
 
@@ -181,9 +171,6 @@ public class ClientService {
 
     @Transactional
     public void deleteMany(List<String> ids) {
-        User currentUser = getCurrentUser();
-
-        validateCanManageClients(currentUser);
 
         if (ids == null || ids.isEmpty()) {
             throw new ResponseStatusException(
@@ -195,7 +182,6 @@ public class ClientService {
         List<Client> clients = clientRepository.findByIdIn(ids);
 
         for (Client client : clients) {
-            validateCanAccessClient(client);
             client.setStatus(ClientStatus.INACTIVE);
         }
 
@@ -267,94 +253,6 @@ public class ClientService {
         address.setCity(city);
 
         return address;
-    }
-
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder
-                .getContext()
-                .getAuthentication();
-
-        if (authentication == null || !(authentication.getPrincipal() instanceof User user)) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "Usuario nao autenticado"
-            );
-        }
-
-        return user;
-    }
-
-    private void validateCanManageClients(User currentUser) {
-        if (
-                currentUser.getRole() != UserRole.MASTER_ADMIN &&
-                        currentUser.getRole() != UserRole.COMPANY_ADMIN
-        ) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Usuario sem permissao para gerenciar clientes"
-            );
-        }
-    }
-
-    private void validateCanAccessClient(Client client) {
-        User currentUser = getCurrentUser();
-
-        if (currentUser.getRole() == UserRole.MASTER_ADMIN) {
-            return;
-        }
-
-        if (
-                currentUser.getCompanyId() == null ||
-                        !currentUser.getCompanyId().equals(client.getCompanyId())
-        ) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Cliente pertence a outra empresa"
-            );
-        }
-    }
-
-    private String resolveCompanyIdForQuery(User currentUser, String requestedCompanyId) {
-        if (currentUser.getRole() == UserRole.MASTER_ADMIN) {
-            return requestedCompanyId;
-        }
-
-        return currentUser.getCompanyId();
-    }
-
-    private String resolveCompanyIdForCreate(User currentUser, String requestedCompanyId) {
-        if (currentUser.getRole() == UserRole.MASTER_ADMIN) {
-            if (requestedCompanyId == null || requestedCompanyId.isBlank()) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "Empresa obrigatoria para cadastro realizado por MASTER_ADMIN"
-                );
-            }
-
-            Company company = companyRepository.findById(requestedCompanyId)
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.BAD_REQUEST,
-                            "Empresa nao encontrada"
-                    ));
-
-            return company.getId();
-        }
-
-        if (currentUser.getRole() == UserRole.COMPANY_ADMIN) {
-            if (currentUser.getCompanyId() == null || currentUser.getCompanyId().isBlank()) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "Usuario COMPANY_ADMIN sem empresa vinculada"
-                );
-            }
-
-            return currentUser.getCompanyId();
-        }
-
-        throw new ResponseStatusException(
-                HttpStatus.FORBIDDEN,
-                "Usuario sem permissao"
-        );
     }
 
     private String onlyNumbers(String value) {

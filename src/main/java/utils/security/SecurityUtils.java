@@ -32,5 +32,26 @@ public final class SecurityUtils {
         return currentUser().role();
     }
 
+    public static boolean isMasterAdmin() {
+        JWTUserData user = currentUser();
+        return user != null && "MASTER_ADMIN".equalsIgnoreCase(user.role());
+    }
+
+    public static String resolveCompanyId(String requestedCompanyId) {
+
+        JWTUserData user = currentUser();
+
+        if (user == null) {
+            return requestedCompanyId;
+        }
+
+        if (isMasterAdmin()) {
+            return requestedCompanyId;
+        }
+
+        return user.companyId();
+
+    }
+
 }
 
