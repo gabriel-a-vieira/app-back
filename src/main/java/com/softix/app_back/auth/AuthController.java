@@ -4,6 +4,7 @@ import com.softix.app_back.auth.request.LoginRequest;
 import com.softix.app_back.auth.request.RegisterUserRequest;
 import com.softix.app_back.auth.response.LoginResponse;
 import com.softix.app_back.auth.response.RegisterUserResponse;
+import com.softix.app_back.config.JWTUserData;
 import com.softix.app_back.config.TokenConfig;
 import com.softix.app_back.user.User;
 import com.softix.app_back.user.UserRepository;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+import utils.security.SecurityUtils;
 
 @RestController
 @RequestMapping("/auth")
@@ -55,12 +58,19 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<RegisterUserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
 
+        if (userRepository.existsByEmailIgnoreCase(request.email())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email ja cadastrado");
+        }
+
+        String companyId = SecurityUtils.resolveCompanyId(request.companyId());
+
         User newUser = new User();
 
         newUser.setName(request.name());
         newUser.setEmail(request.email());
         newUser.setRole(request.role() != null ? request.role() : UserRole.CLIENT);
         newUser.setPassword(passwordEncoder.encode(request.password()));
+        newUser.setCompanyId(companyId);
 
         userRepository.save(newUser);
 
