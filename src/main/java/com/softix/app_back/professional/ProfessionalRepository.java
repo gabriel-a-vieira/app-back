@@ -56,4 +56,9 @@ public interface ProfessionalRepository extends JpaRepository<Professional, Stri
             Pageable pageable
     );
 
+    boolean existsByIdAndCompanyId(
+            String id,
+            String companyId
+    );
+
 }

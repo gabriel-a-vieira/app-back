@@ -1,8 +1,12 @@
 package com.softix.app_back.availability;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.DayOfWeek;
@@ -15,40 +19,51 @@ public class AvailabilityController {
     @Autowired
     AvailabilityService availabilityService;
 
-    @Autowired
-    AvailabilityRepository availabilityRepository;
-
     @GetMapping
-    public List<Availability> findAll() {
-        return availabilityRepository.findAll();
+    public Page<AvailabilityDTO> findAll(@RequestParam(required = false) String search,
+
+                                         @RequestParam(required = false) String professionalId,
+
+                                         @RequestParam(required = false) DayOfWeek dayWeek,
+
+                                         @RequestParam(required = false) String companyId,
+
+                                         @RequestParam(defaultValue = "0") int page,
+
+                                         @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.asc("professionalId"), Sort.Order.asc("dayWeek"), Sort.Order.asc("startTime")));
+
+        return availabilityService.findAll(search, professionalId, dayWeek, companyId, pageable);
+
     }
 
-    @GetMapping(path = "{id}")
-    public Availability findById(@PathVariable("id") String id) {
-        return availabilityRepository.findById(id).orElse(null);
+    @GetMapping("/{id}")
+    public AvailabilityDTO findById(@PathVariable String id) {
+        return availabilityService.findById(id);
     }
 
     @PostMapping
-    public ResponseEntity post(@RequestBody String jsonBody) {
-
-        if (jsonBody == null) return ResponseEntity.badRequest().body("Invalid JSON");
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        AvailabilityDTO dto;
-
-        try {
-            dto = objectMapper.readValue(jsonBody, AvailabilityDTO.class);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error parsing JSON");
-        }
-
-        return ResponseEntity.ok(availabilityService.save(dto));
-
+    @ResponseStatus(HttpStatus.CREATED)
+    public AvailabilityDTO create(@Valid @RequestBody AvailabilityDTO dto) {
+        return availabilityService.save(dto);
     }
 
-    @GetMapping(path = "by-day")
-    public List<Availability> list(@RequestParam String professionalId,
-                                   @RequestParam DayOfWeek day) {
+    @PutMapping("/{id}")
+    public AvailabilityDTO update(@PathVariable String id,
+                                  @Valid @RequestBody AvailabilityDTO dto) {
+        return availabilityService.update(id, dto);
+    }
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteMany(@RequestBody List<String> ids) {
+        availabilityService.deleteMany(ids);
+    }
+
+    @GetMapping("/by-day")
+    public List<AvailabilityDTO> findByDay(@RequestParam String professionalId,
+                                           @RequestParam DayOfWeek day) {
         return availabilityService.getByDay(professionalId, day);
     }
 
