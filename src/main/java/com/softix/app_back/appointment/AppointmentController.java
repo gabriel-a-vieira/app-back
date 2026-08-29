@@ -1,10 +1,16 @@
 package com.softix.app_back.appointment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -14,35 +20,53 @@ public class AppointmentController {
     @Autowired
     AppointmentService appointmentService;
 
-    @Autowired
-    AppointmentRepository appointmentRepository;
-
     @GetMapping
-    public List<Appointment> findAll() {
-        return appointmentRepository.findAll();
+    public Page<AppointmentDTO> findAll(@RequestParam(required = false) String search,
+                                        @RequestParam(required = false) String status,
+                                        @RequestParam(required = false) String clientId,
+                                        @RequestParam(required = false) String professionalId,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+                                        @RequestParam(required = false) String companyId,
+                                        @RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startAt"));
+
+        return appointmentService.findAll(search, status, clientId, professionalId, dateFrom, dateTo, companyId, pageable);
+
     }
 
-    @GetMapping(path = "{id}")
-    public Appointment findById(@PathVariable("id") String id) {
-        return appointmentRepository.findById(id).orElse(null);
+    @GetMapping("/{id}")
+    public AppointmentDTO findById(@PathVariable String id) {
+        return appointmentService.findById(id);
     }
 
     @PostMapping
-    public ResponseEntity post(@RequestBody String jsonBody) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public AppointmentDTO create(@Valid @RequestBody AppointmentDTO dto) {
+        return appointmentService.save(dto);
+    }
 
-        if (jsonBody == null) return ResponseEntity.badRequest().body("Invalid JSON");
+    @PutMapping("/{id}")
+    public AppointmentDTO update(@PathVariable String id,
+                                 @Valid @RequestBody AppointmentDTO dto) {
+        return appointmentService.update(id, dto);
+    }
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        AppointmentDTO dto;
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelMany(@RequestBody List<String> ids) {
+        appointmentService.cancelMany(ids);
+    }
 
-        try {
-            dto = objectMapper.readValue(jsonBody, AppointmentDTO.class);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error parsing JSON");
-        }
-
-        return ResponseEntity.ok(appointmentService.save(dto));
-
+    @GetMapping("/available-slots")
+    public List<String> findAvailableSlots(@RequestParam String professionalId,
+                                           @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                           @RequestParam List<String> serviceIds,
+                                           @RequestParam(required = false) String companyId,
+                                           @RequestParam(required = false) String ignoreAppointmentId) {
+        return appointmentService.findAvailableSlots(professionalId, date, serviceIds, companyId, ignoreAppointmentId);
     }
 
 }

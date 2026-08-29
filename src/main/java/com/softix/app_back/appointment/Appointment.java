@@ -2,14 +2,12 @@ package com.softix.app_back.appointment;
 
 import com.softix.app_back.client.Client;
 import com.softix.app_back.professional.Professional;
-import com.softix.app_back.service_offering.ServiceOffering;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import utils.model.tenant.TenantEntity;
 
-import java.util.Date;
-
+import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -17,36 +15,38 @@ import java.util.Date;
 @Table(name = "appointment")
 public class Appointment extends TenantEntity {
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id")
     private Client client;
 
-    @Column(name = "client_id", length = 38, insertable = false, updatable = false)
+    @Column(
+            name = "client_id",
+            length = 38,
+            insertable = false,
+            updatable = false
+    )
     private String clientId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "professional_id")
     private Professional professional;
 
-    @Column(name = "professional_id", length = 38, insertable = false, updatable = false)
+    @Column(
+            name = "professional_id",
+            length = 38,
+            insertable = false,
+            updatable = false
+    )
     private String professionalId;
 
-    @ManyToOne
-    @JoinColumn(name = "service_offering_id", insertable = false, updatable = false)
-    private ServiceOffering serviceOffering;
+    @Column(name = "start_at", nullable = false)
+    private LocalDateTime startAt;
 
-    @Column(name = "service_offering_id", length = 38, insertable = false, updatable = false)
-    private String serviceOfferingId;
-
-    @Column(name = "start_at")
-    private Date startAt;
-
-    @Column(name = "ent_at")
-    private Date endAt;
+    @Column(name = "end_at", nullable = false)
+    private LocalDateTime endAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private AppointmentStatus status;
+    @Column(name = "status", nullable = false)
+    private AppointmentStatus status = AppointmentStatus.SCHEDULED;
 
 }
-

@@ -76,4 +76,9 @@ public interface ServiceOfferingRepository
             Pageable pageable
     );
 
+    List<ServiceOffering> findByIdInAndCompanyId(
+            Collection<String> ids,
+            String companyId
+    );
+
 }

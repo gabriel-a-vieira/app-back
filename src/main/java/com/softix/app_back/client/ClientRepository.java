@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface ClientRepository extends JpaRepository<Client, String> {
 
@@ -59,5 +60,10 @@ public interface ClientRepository extends JpaRepository<Client, String> {
             @Param("status") ClientStatus status,
             @Param("preferredPaymentMethod") PaymentMethod preferredPaymentMethod,
             Pageable pageable
+    );
+
+    Optional<Client> findByIdAndCompanyId(
+            String id,
+            String companyId
     );
 }

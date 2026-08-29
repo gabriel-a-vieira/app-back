@@ -3,25 +3,27 @@ package com.softix.app_back.appointment;
 import com.softix.app_back.service_offering.ServiceOffering;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import utils.model.tenant.TenantEntity;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "appointment_service_item")
 public class AppointmentServiceItem extends TenantEntity {
 
-    @ManyToOne
-    @JoinColumn(name = "appointment_id", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "appointment_id")
     private Appointment appointment;
 
-    @Column(name = "appointment_id")
+    @Column(name = "appointment_id", insertable = false, updatable = false)
     private String appointmentId;
 
-    @ManyToOne
-    @JoinColumn(name = "service_offering_id", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_offering_id")
     private ServiceOffering serviceOffering;
 
-    @Column(name = "service_offering_id")
+    @Column(name = "service_offering_id", insertable = false, updatable = false    )
     private String serviceOfferingId;
 
     @Column(name = "duration_minutes")
@@ -32,5 +34,5 @@ public class AppointmentServiceItem extends TenantEntity {
 
     @Column(name = "execution_order")
     private Integer executionOrder;
-}
 
+}

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProfessionalRepository extends JpaRepository<Professional, String> {
 
@@ -57,6 +58,11 @@ public interface ProfessionalRepository extends JpaRepository<Professional, Stri
     );
 
     boolean existsByIdAndCompanyId(
+            String id,
+            String companyId
+    );
+
+    Optional<Professional> findByIdAndCompanyId(
             String id,
             String companyId
     );

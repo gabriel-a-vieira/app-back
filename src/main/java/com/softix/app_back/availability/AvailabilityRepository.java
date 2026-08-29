@@ -54,4 +54,6 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Stri
                                           @Param("endTime") LocalTime endTime,
                                           @Param("ignoreId") String ignoreId);
 
+    List<Availability> findByProfessionalIdAndDayWeekAndCompanyIdOrderByStartTimeAsc(String professionalId, DayOfWeek dayWeek, String companyId);
+
 }
