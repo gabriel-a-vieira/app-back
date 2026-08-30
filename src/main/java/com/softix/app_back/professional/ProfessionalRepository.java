@@ -57,14 +57,10 @@ public interface ProfessionalRepository extends JpaRepository<Professional, Stri
             Pageable pageable
     );
 
-    boolean existsByIdAndCompanyId(
-            String id,
-            String companyId
-    );
+    boolean existsByIdAndCompanyId(String id, String companyId);
 
-    Optional<Professional> findByIdAndCompanyId(
-            String id,
-            String companyId
-    );
+    Optional<Professional> findByIdAndCompanyId(String id, String companyId);
+
+    List<Professional> findByCompanyIdAndStatusOrderByPerson_NameAsc(String companyId, ProfessionalStatus status);
 
 }

@@ -51,17 +51,23 @@ public class AppointmentService {
     AvailabilityRepository availabilityRepository;
 
     @Transactional(readOnly = true)
-    public Page<AppointmentDTO> findAll(String search, String status, String clientId, String professionalId, LocalDate dateFrom, LocalDate dateTo, String companyId, Pageable pageable) {
+    public Page<AppointmentDTO> findAll(String search, String status, String clientId, String professionalId,
+                                        LocalDate dateFrom, LocalDate dateTo, String companyId, Pageable pageable) {
 
         String resolvedCompanyId = SecurityUtils.resolveCompanyId(companyId);
 
         AppointmentStatus parsedStatus = parseStatus(status);
 
-        LocalDateTime dateFromTime = dateFrom != null ? dateFrom.atStartOfDay() : null;
+        LocalDateTime dateFromTime = dateFrom != null
+                        ? dateFrom.atStartOfDay()
+                        : LocalDateTime.now();
 
-        LocalDateTime dateToTime = dateTo != null ? dateTo.plusDays(1).atStartOfDay() : null;
+        LocalDateTime dateToTime = dateTo != null
+                ? dateTo.plusDays(1).atStartOfDay()
+                : LocalDateTime.now().plusDays(7);
 
-        return appointmentRepository.findAdvanced(resolvedCompanyId, search, parsedStatus, clientId, professionalId, dateFromTime, dateToTime, pageable).map(this::toDTO);
+        return appointmentRepository.findAdvanced(resolvedCompanyId, search, parsedStatus, clientId, professionalId,
+                dateFromTime, dateToTime, pageable).map(this::toDTO);
 
     }
 
