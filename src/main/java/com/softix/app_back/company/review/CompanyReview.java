@@ -12,12 +12,12 @@ import utils.model.tenant.TenantEntity;
 @Table(name = "company_review", uniqueConstraints = {@UniqueConstraint(name = "uk_company_review_company_user", columnNames = {"company_id", "user_id"})})
 public class CompanyReview extends TenantEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @Column(name = "user_id", insertable = false, updatable = false)
+    @Column(name = "user_id", length = 38, nullable = false)
     private String userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
 
     @Column(name = "rating", nullable = false)
     private Integer rating;
