@@ -19,24 +19,14 @@ public class Appointment extends TenantEntity {
     @JoinColumn(name = "client_id")
     private Client client;
 
-    @Column(
-            name = "client_id",
-            length = 38,
-            insertable = false,
-            updatable = false
-    )
+    @Column(name = "client_id", length = 38, insertable = false, updatable = false)
     private String clientId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "professional_id")
     private Professional professional;
 
-    @Column(
-            name = "professional_id",
-            length = 38,
-            insertable = false,
-            updatable = false
-    )
+    @Column(name = "professional_id", length = 38, insertable = false, updatable = false)
     private String professionalId;
 
     @Column(name = "start_at", nullable = false)
@@ -48,5 +38,11 @@ public class Appointment extends TenantEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AppointmentStatus status = AppointmentStatus.SCHEDULED;
+
+    @Column(name = "notes", length = 2000)
+    private String notes;
+
+    @Column(name = "prefers_silence", nullable = false)
+    private Boolean prefersSilence = false;
 
 }

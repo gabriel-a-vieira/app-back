@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, String> {
 
@@ -67,5 +68,30 @@ public interface AppointmentRepository extends JpaRepository<Appointment, String
                                                                                                        List<AppointmentStatus> statuses,
                                                                                                        LocalDateTime endAt,
                                                                                                        LocalDateTime startAt);
+
+    @Query("""
+            SELECT a
+            FROM Appointment a
+            JOIN a.client c
+            WHERE
+                c.userId = :userId
+                AND a.startAt >= :dateFrom
+            ORDER BY a.startAt ASC
+            """)
+    Page<Appointment> findMine(@Param("userId") String userId,
+                               @Param("dateFrom") LocalDateTime dateFrom,
+                               Pageable pageable);
+
+
+    @Query("""
+            SELECT a
+            FROM Appointment a
+            JOIN a.client c
+            WHERE
+                a.id = :id
+                AND c.userId = :userId
+            """)
+    Optional<Appointment> findMineById(@Param("id") String id,
+                                       @Param("userId") String userId);
 
 }

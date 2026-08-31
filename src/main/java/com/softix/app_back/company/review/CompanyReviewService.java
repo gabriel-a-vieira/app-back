@@ -3,6 +3,7 @@ package com.softix.app_back.company.review;
 import com.softix.app_back.company.CompanyRepository;
 import com.softix.app_back.config.JWTUserData;
 import com.softix.app_back.user.User;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -56,8 +57,8 @@ public class CompanyReviewService {
         review.setCompanyId(dto.getCompanyId());
         review.setUserId(userId);
         review.setRating(dto.getRating());
-        review.setComment(normalize(dto.getComment()));
-        review.setImageUrl(normalize(dto.getImageUrl()));
+        review.setComment(StringUtils.trim(dto.getComment()));
+        review.setImageUrl(StringUtils.trim(dto.getImageUrl()));
 
         companyReviewRepository.save(review);
 
@@ -71,8 +72,8 @@ public class CompanyReviewService {
         CompanyReview review = companyReviewRepository.findByIdAndUserId(id, SecurityUtils.userId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Avaliacao nao encontrada"));
 
         review.setRating(dto.getRating());
-        review.setComment(normalize(dto.getComment()));
-        review.setImageUrl(normalize(dto.getImageUrl()));
+        review.setComment(StringUtils.trim(dto.getComment()));
+        review.setImageUrl(StringUtils.trim(dto.getImageUrl()));
 
         companyReviewRepository.save(review);
 
@@ -93,18 +94,6 @@ public class CompanyReviewService {
         if (!companyRepository.existsById(companyId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empresa nao encontrada");
         }
-
-    }
-
-    private String normalize(String value) {
-
-        if (value == null) {
-            return null;
-        }
-
-        String normalized = value.trim();
-
-        return normalized.isEmpty() ? null : normalized;
 
     }
 

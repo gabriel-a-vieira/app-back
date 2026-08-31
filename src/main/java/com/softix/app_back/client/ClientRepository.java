@@ -26,29 +26,29 @@ public interface ClientRepository extends JpaRepository<Client, String> {
     );
 
     @Query("""
-        SELECT c
-        FROM Client c
-        LEFT JOIN c.person person
-        LEFT JOIN person.address.city city
-        LEFT JOIN city.state state
-        WHERE
-            (:companyId IS NULL OR c.companyId = :companyId)
-            AND (:status IS NULL OR c.status = :status)
-            AND (:preferredPaymentMethod IS NULL OR c.preferredPaymentMethod = :preferredPaymentMethod)
-            AND (
-                :search IS NULL OR :search = ''
-                OR LOWER(person.name) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR person.cpfCnpj LIKE CONCAT('%', :search, '%')
-                OR person.phone LIKE CONCAT('%', :search, '%')
-                OR LOWER(city.name) LIKE LOWER(CONCAT('%', :search, '%'))
-                OR LOWER(state.abbreviation) LIKE LOWER(CONCAT('%', :search, '%'))
-            )
-            AND (:name IS NULL OR :name = '' OR LOWER(person.name) LIKE LOWER(CONCAT('%', :name, '%')))
-            AND (:cpfCnpj IS NULL OR :cpfCnpj = '' OR person.cpfCnpj LIKE CONCAT('%', :cpfCnpj, '%'))
-            AND (:phone IS NULL OR :phone = '' OR person.phone LIKE CONCAT('%', :phone, '%'))
-            AND (:city IS NULL OR :city = '' OR LOWER(city.name) LIKE LOWER(CONCAT('%', :city, '%')))
-            AND (:state IS NULL OR :state = '' OR LOWER(state.abbreviation) = LOWER(:state))
-        """)
+            SELECT c
+            FROM Client c
+            LEFT JOIN c.person person
+            LEFT JOIN person.address.city city
+            LEFT JOIN city.state state
+            WHERE
+                (:companyId IS NULL OR c.companyId = :companyId)
+                AND (:status IS NULL OR c.status = :status)
+                AND (:preferredPaymentMethod IS NULL OR c.preferredPaymentMethod = :preferredPaymentMethod)
+                AND (
+                    :search IS NULL OR :search = ''
+                    OR LOWER(person.name) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR person.cpfCnpj LIKE CONCAT('%', :search, '%')
+                    OR person.phone LIKE CONCAT('%', :search, '%')
+                    OR LOWER(city.name) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR LOWER(state.abbreviation) LIKE LOWER(CONCAT('%', :search, '%'))
+                )
+                AND (:name IS NULL OR :name = '' OR LOWER(person.name) LIKE LOWER(CONCAT('%', :name, '%')))
+                AND (:cpfCnpj IS NULL OR :cpfCnpj = '' OR person.cpfCnpj LIKE CONCAT('%', :cpfCnpj, '%'))
+                AND (:phone IS NULL OR :phone = '' OR person.phone LIKE CONCAT('%', :phone, '%'))
+                AND (:city IS NULL OR :city = '' OR LOWER(city.name) LIKE LOWER(CONCAT('%', :city, '%')))
+                AND (:state IS NULL OR :state = '' OR LOWER(state.abbreviation) = LOWER(:state))
+            """)
     Page<Client> findAdvanced(
             @Param("companyId") String companyId,
             @Param("search") String search,
@@ -62,8 +62,8 @@ public interface ClientRepository extends JpaRepository<Client, String> {
             Pageable pageable
     );
 
-    Optional<Client> findByIdAndCompanyId(
-            String id,
-            String companyId
-    );
+    Optional<Client> findByIdAndCompanyId(String id, String companyId);
+
+    Optional<Client> findByCompanyIdAndUserId(String companyId, String userId);
+
 }

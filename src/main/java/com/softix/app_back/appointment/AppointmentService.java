@@ -1,13 +1,19 @@
 package com.softix.app_back.appointment;
 
+import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentDTO;
+import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentRequest;
 import com.softix.app_back.availability.Availability;
 import com.softix.app_back.availability.AvailabilityRepository;
 import com.softix.app_back.client.Client;
 import com.softix.app_back.client.ClientRepository;
+import com.softix.app_back.client.ClientService;
+import com.softix.app_back.company.Company;
+import com.softix.app_back.company.CompanyRepository;
 import com.softix.app_back.professional.Professional;
 import com.softix.app_back.professional.ProfessionalRepository;
 import com.softix.app_back.service_offering.ServiceOffering;
 import com.softix.app_back.service_offering.ServiceOfferingRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,7 +27,10 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -50,24 +59,24 @@ public class AppointmentService {
     @Autowired
     AvailabilityRepository availabilityRepository;
 
+    @Autowired
+    CompanyRepository companyRepository;
+
+    @Autowired
+    ClientService clientService;
+
     @Transactional(readOnly = true)
-    public Page<AppointmentDTO> findAll(String search, String status, String clientId, String professionalId,
-                                        LocalDate dateFrom, LocalDate dateTo, String companyId, Pageable pageable) {
+    public Page<AppointmentDTO> findAll(String search, String status, String clientId, String professionalId, LocalDate dateFrom, LocalDate dateTo, String companyId, Pageable pageable) {
 
         String resolvedCompanyId = SecurityUtils.resolveCompanyId(companyId);
 
         AppointmentStatus parsedStatus = parseStatus(status);
 
-        LocalDateTime dateFromTime = dateFrom != null
-                        ? dateFrom.atStartOfDay()
-                        : LocalDateTime.now();
+        LocalDateTime dateFromTime = dateFrom != null ? dateFrom.atStartOfDay() : LocalDateTime.now();
 
-        LocalDateTime dateToTime = dateTo != null
-                ? dateTo.plusDays(1).atStartOfDay()
-                : LocalDateTime.now().plusDays(7);
+        LocalDateTime dateToTime = dateTo != null ? dateTo.plusDays(1).atStartOfDay() : LocalDateTime.now().plusDays(7);
 
-        return appointmentRepository.findAdvanced(resolvedCompanyId, search, parsedStatus, clientId, professionalId,
-                dateFromTime, dateToTime, pageable).map(this::toDTO);
+        return appointmentRepository.findAdvanced(resolvedCompanyId, search, parsedStatus, clientId, professionalId, dateFromTime, dateToTime, pageable).map(this::toDTO);
 
     }
 
@@ -189,17 +198,17 @@ public class AppointmentService {
     @Transactional(readOnly = true)
     public List<String> findAvailableSlots(String professionalId, LocalDate date, List<String> serviceIds, String companyId, String ignoreAppointmentId) {
 
-        String resolvedCompanyId = SecurityUtils.resolveCompanyId(companyId);
+        companyId = StringUtils.isBlank(companyId) ? SecurityUtils.resolveCompanyId(companyId) : companyId;
 
-        validateCompanyId(resolvedCompanyId);
+        validateCompanyId(companyId);
 
-        Professional professional = findProfessional(professionalId, resolvedCompanyId);
-        List<ServiceOffering> services = findServices(serviceIds, resolvedCompanyId);
+        Professional professional = findProfessional(professionalId, companyId);
+        List<ServiceOffering> services = findServices(serviceIds, companyId);
 
         int totalMinutes = calculateTotalMinutes(services);
         DayOfWeek day = date.getDayOfWeek();
 
-        List<Availability> availabilities = availabilityRepository.findByProfessionalIdAndDayWeekAndCompanyIdOrderByStartTimeAsc(professional.getId(), day, resolvedCompanyId);
+        List<Availability> availabilities = availabilityRepository.findByProfessionalIdAndDayWeekAndCompanyIdOrderByStartTimeAsc(professional.getId(), day, companyId);
 
         if (availabilities.isEmpty()) {
             return List.of();
@@ -208,7 +217,7 @@ public class AppointmentService {
         LocalDateTime dayStart = date.atStartOfDay();
         LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
 
-        List<Appointment> booked = appointmentRepository.findByCompanyIdAndProfessionalIdAndStatusInAndStartAtLessThanAndEndAtGreaterThan(resolvedCompanyId, professional.getId(), BLOCKING_STATUSES, dayEnd, dayStart);
+        List<Appointment> booked = appointmentRepository.findByCompanyIdAndProfessionalIdAndStatusInAndStartAtLessThanAndEndAtGreaterThan(companyId, professional.getId(), BLOCKING_STATUSES, dayEnd, dayStart);
 
         if (ignoreAppointmentId != null && !ignoreAppointmentId.isBlank()) {
             booked = booked.stream().filter(appointment -> !ignoreAppointmentId.equals(appointment.getId())).toList();
@@ -432,6 +441,126 @@ public class AppointmentService {
 
     private String formatTime(LocalTime time) {
         return String.format("%02d:%02d", time.getHour(), time.getMinute());
+    }
+
+    @Transactional
+    public CustomerAppointmentDTO saveCustomer(CustomerAppointmentRequest request) {
+
+        Client client = clientService.findOrCreateForCustomer(request.getCompanyId());
+        Professional professional = findProfessional(request.getProfessionalId(), request.getCompanyId());
+        List<ServiceOffering> services = findServices(request.getServiceIds(), request.getCompanyId());
+
+        LocalDateTime startAt = request.getStartAt();
+
+        if (startAt == null || startAt.isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horario de agendamento invalido");
+        }
+
+        LocalDateTime endAt = calculateEndAt(startAt, services);
+
+        validateAvailability(professional.getId(), request.getCompanyId(), startAt, endAt);
+        validateConflict(professional.getId(), request.getCompanyId(), startAt, endAt, null);
+
+        Appointment appointment = new Appointment();
+        appointment.setCompanyId(request.getCompanyId());
+        appointment.setClient(client);
+        appointment.setProfessional(professional);
+        appointment.setStartAt(startAt);
+        appointment.setEndAt(endAt);
+        appointment.setStatus(AppointmentStatus.SCHEDULED);
+        appointment.setNotes(StringUtils.trim(request.getNotes()));
+        appointment.setPrefersSilence(Boolean.TRUE.equals(request.getPrefersSilence()));
+
+        appointmentRepository.save(appointment);
+
+        saveServiceItems(appointment, services, request.getCompanyId());
+
+        return toCustomerDTO(appointment);
+
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CustomerAppointmentDTO> findMine(Pageable pageable) {
+
+        String userId = SecurityUtils.userId();
+        return appointmentRepository.findMine(userId, LocalDate.now().atStartOfDay(), pageable).map(this::toCustomerDTO);
+
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerAppointmentDTO findMineById(String id) {
+
+        String userId = SecurityUtils.userId();
+        Appointment appointment = appointmentRepository.findMineById(id, userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado"));
+        return toCustomerDTO(appointment);
+
+    }
+
+    @Transactional
+    public void cancelMine(String id) {
+
+        String userId = SecurityUtils.userId();
+
+        Appointment appointment = appointmentRepository.findMineById(id, userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado"));
+
+        if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Agendamento concluido nao pode ser cancelado");
+        }
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            return;
+        }
+
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+
+        appointmentRepository.save(appointment);
+
+    }
+
+    private CustomerAppointmentDTO toCustomerDTO(Appointment appointment) {
+
+        CustomerAppointmentDTO dto = new CustomerAppointmentDTO();
+
+        dto.setId(appointment.getId());
+        dto.setCompanyId(appointment.getCompanyId());
+        dto.setStartAt(appointment.getStartAt());
+        dto.setEndAt(appointment.getEndAt());
+        dto.setStatus(appointment.getStatus());
+        dto.setNotes(appointment.getNotes());
+        dto.setPrefersSilence(appointment.getPrefersSilence());
+
+        if (appointment.getProfessional() != null) {
+
+            dto.setProfessionalId(appointment.getProfessional().getId());
+
+            if (appointment.getProfessional().getPerson() != null) {
+                dto.setProfessionalName(appointment.getProfessional().getPerson().getName());
+            }
+
+        }
+
+        Company company = companyRepository.findById(appointment.getCompanyId()).orElse(null);
+
+        if (company != null) {
+
+            String companyName = company.getTradeName();
+
+            if (companyName == null || companyName.isBlank()) {
+                companyName = company.getLegalName();
+            }
+
+            dto.setCompanyName(companyName);
+
+        }
+
+        List<AppointmentServiceItem> items = appointmentServiceItemRepository.findByAppointmentIdOrderByExecutionOrderAsc(appointment.getId());
+        dto.setServices(items.stream().map(AppointmentServiceItemDTO::new).toList());
+
+        double total = items.stream().map(AppointmentServiceItem::getPrice).filter(Objects::nonNull).mapToDouble(Double::doubleValue).sum();
+        dto.setTotalPrice(total);
+
+        return dto;
+
     }
 
 }

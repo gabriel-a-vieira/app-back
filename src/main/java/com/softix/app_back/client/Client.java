@@ -32,7 +32,11 @@ public class Client extends TenantEntity {
     @Column(name = "status")
     private ClientStatus status = ClientStatus.ACTIVE;
 
-    public Client() {}
+    @Column(name = "user_id", length = 38)
+    private String userId;
+
+    public Client() {
+    }
 
     public Client(ClientDTO dto) {
         BeanUtils.copyProperties(dto, this);

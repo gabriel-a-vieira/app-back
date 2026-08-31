@@ -58,7 +58,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<RegisterUserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
 
-        if (userRepository.existsByEmailIgnoreCase(request.email())) {
+         if (userRepository.existsByEmailIgnoreCase(request.email())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email ja cadastrado");
         }
 

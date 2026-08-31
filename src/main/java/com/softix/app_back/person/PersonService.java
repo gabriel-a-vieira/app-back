@@ -23,9 +23,10 @@ public class PersonService {
 
     private void validatePerson(Person person) {
 
-        if (StringUtils.isBlank(person.getCpfCnpj())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF ou CNPJ são obrigatórios!");
-        }
+//TODO Verify if its necessary tto validate this field, because, it's not been asked on user registration
+//        if (StringUtils.isBlank(person.getCpfCnpj())) {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF ou CNPJ são obrigatórios!");
+//        }
 
     }
 

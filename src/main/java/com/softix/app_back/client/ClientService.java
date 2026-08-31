@@ -8,6 +8,9 @@ import com.softix.app_back.company.CompanyRepository;
 import com.softix.app_back.payment.PaymentMethod;
 import com.softix.app_back.person.Person;
 import com.softix.app_back.person.PersonRepository;
+import com.softix.app_back.person.PersonService;
+import com.softix.app_back.user.User;
+import com.softix.app_back.user.UserRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -34,6 +37,12 @@ public class ClientService {
 
     @Autowired
     CompanyRepository companyRepository;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    PersonService personService;
 
     public Page<ClientResponse> findAll(String search, String name, String cpfCnpj, String phone, String city, String state, String status, String preferredPaymentMethod, String companyId, Pageable pageable) {
 
@@ -200,4 +209,44 @@ public class ClientService {
 
         return value.replaceAll("[^0-9]", "");
     }
+
+    @Transactional
+    public Client findOrCreateForCustomer(String companyId) {
+
+        String userId = SecurityUtils.userId();
+
+        if (userId == null || userId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario nao autenticado");
+        }
+
+        if (companyId == null || companyId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empresa nao informada");
+        }
+
+        Client existingClient = clientRepository.findByCompanyIdAndUserId(companyId, userId).orElse(null);
+
+        if (existingClient != null) {
+            return existingClient;
+        }
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario nao encontrado"));
+
+        Person person = new Person();
+
+        person.setCompanyId(companyId);
+        person.setName(user.getName());
+
+        personService.save(person);
+
+        Client client = new Client();
+
+        client.setCompanyId(companyId);
+        client.setUserId(userId);
+        client.setPerson(person);
+
+        client.setStatus(ClientStatus.ACTIVE);
+        return clientRepository.save(client);
+
+    }
+
 }
