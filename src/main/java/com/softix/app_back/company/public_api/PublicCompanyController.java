@@ -19,6 +19,9 @@ public class PublicCompanyController {
     @Autowired
     ProfessionalRepository professionalRepository;
 
+    @Autowired
+    PublicCompanyService publicCompanyService;
+
     @GetMapping("/{companyId}/services")
     public List<PublicServiceOfferingDTO> findServices(@PathVariable String companyId) {
         return serviceOfferingRepository.findByCompanyIdAndStatusOrderByNameAsc(companyId, ServiceOfferingStatus.ACTIVE).stream().map(PublicServiceOfferingDTO::new).toList();
@@ -27,6 +30,11 @@ public class PublicCompanyController {
     @GetMapping("/{companyId}/professionals")
     public List<PublicProfessionalDTO> findProfessionals(@PathVariable String companyId) {
         return professionalRepository.findByCompanyIdAndStatusOrderByPerson_NameAsc(companyId, ProfessionalStatus.ACTIVE).stream().map(PublicProfessionalDTO::new).toList();
+    }
+
+    @GetMapping("/{companyId}/details")
+    public PublicCompanyDetailDTO findDetail(@PathVariable String companyId) {
+        return publicCompanyService.findDetail(companyId);
     }
 
 }

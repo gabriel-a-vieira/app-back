@@ -1,10 +1,16 @@
 package com.softix.app_back.company;
 
 import com.softix.app_back.address.Address;
+import com.softix.app_back.payment.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import utils.model.RootEntity;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -46,5 +52,21 @@ public class Company extends RootEntity {
 
     @Column(name = "tiktok_url")
     private String tiktokUrl;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "company_payment_method", joinColumns = @JoinColumn(name = "company_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", nullable = false)
+    private Set<PaymentMethod> paymentMethods = new LinkedHashSet<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "company_amenity", joinColumns = @JoinColumn(name = "company_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "amenity", nullable = false)
+    private Set<CompanyAmenity> amenities = new LinkedHashSet<>();
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "company_opening_hour", joinColumns = @JoinColumn(name = "company_id"))
+    private List<CompanyOpeningHour> openingHours = new ArrayList<>();
 
 }
