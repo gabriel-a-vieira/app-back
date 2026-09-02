@@ -1,12 +1,10 @@
 package com.softix.app_back.company;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,26 +16,63 @@ public class CompanyController {
     @Autowired
     CompanyService companyService;
 
-    @Autowired
-    CompanyRepository companyRepository;
+    @GetMapping("/admin")
+    public Page<CompanyAdminResponse> findAdminCompanies(@RequestParam(required = false) CompanyType type,
+                                                         @RequestParam(required = false) CompanyStatus status,
+                                                         @RequestParam(required = false) String search,
+                                                         @RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "10") int size) {
 
-    @GetMapping
-    public List<Company> findAll() {
-        return companyRepository.findAll();
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "tradeName"));
+        return companyService.findAdminCompanies(type, status, search, pageable);
+
     }
 
-    @GetMapping(path = "{id}")
-    public Company findById(@PathVariable("id") String id) {
-        return companyRepository.findById(id).orElse(null);
+
+    @GetMapping("/admin/{id}")
+    public CompanyAdminDetailResponse findAdminById(@PathVariable String id) {
+        return companyService.findAdminById(id);
     }
+
 
     @PostMapping
-    public ResponseEntity<CompanyResponse> post(@RequestBody CompanyDTO dto) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public CompanyAdminDetailResponse create(@RequestBody CompanySaveRequest request) {
+        return companyService.save(request);
+    }
 
-        Company company = companyService.save(dto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CompanyResponse.fromEntity(company));
+    @PutMapping("/{id}")
+    public CompanyAdminDetailResponse update(@PathVariable String id,
+                                             @RequestBody CompanySaveRequest request) {
+        return companyService.update(id, request);
+    }
 
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deactivateMany(@RequestBody List<String> ids) {
+        companyService.deactivateMany(ids);
+    }
+
+    @GetMapping("/companies/types")
+    public List<CompanyTypeResponse> findCompanyTypes() {
+        return companyService.findCompanyTypes();
+    }
+
+    @GetMapping("/companies/statuses")
+    public List<String> findCompanyStatuses() {
+        return companyService.findCompanyStatuses();
+    }
+
+    @GetMapping("/companies/payment-methods")
+    public List<String> findPaymentMethods() {
+        return companyService.findPaymentMethods();
+    }
+
+    @GetMapping("/companies/amenities")
+    public List<String> findAmenities() {
+        return companyService.findAmenities();
     }
 
     @GetMapping("/companies/home-page")
@@ -49,11 +84,6 @@ public class CompanyController {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
         return companyService.findPublicCompanies(type, search, pageRequest);
 
-    }
-
-    @GetMapping("/companies/types")
-    public List<CompanyTypeResponse> findCompanyTypes() {
-        return companyService.findCompanyTypes();
     }
 
 }
