@@ -1,10 +1,12 @@
 package com.softix.app_back.auth;
 
+import com.softix.app_back.auth.external.AuthProvider;
+import com.softix.app_back.auth.external.ExternalAuthService;
+import com.softix.app_back.auth.request.ExternalAuthRequest;
 import com.softix.app_back.auth.request.LoginRequest;
 import com.softix.app_back.auth.request.RegisterUserRequest;
 import com.softix.app_back.auth.response.LoginResponse;
 import com.softix.app_back.auth.response.RegisterUserResponse;
-import com.softix.app_back.config.JWTUserData;
 import com.softix.app_back.config.TokenConfig;
 import com.softix.app_back.user.User;
 import com.softix.app_back.user.UserRepository;
@@ -17,10 +19,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import utils.security.SecurityUtils;
 
@@ -40,25 +39,36 @@ public class AuthController {
     @Autowired
     TokenConfig tokenConfig;
 
+    @Autowired
+    ExternalAuthService externalAuthService;
+
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
 
-        UsernamePasswordAuthenticationToken userAndPass =
-                new UsernamePasswordAuthenticationToken(request.email(), request.password());
+        UsernamePasswordAuthenticationToken userAndPass = new UsernamePasswordAuthenticationToken(request.email(), request.password());
 
         Authentication authentication = authenticationManager.authenticate(userAndPass);
 
         User user = (User) authentication.getPrincipal();
         String token = tokenConfig.generateToken(user);
 
-        return ResponseEntity.ok(new LoginResponse(token,user.getName(),user.getEmail(),user.getRole().name()));
+        return ResponseEntity.ok(new LoginResponse(token, user.getName(), user.getEmail(), user.getRole().name()));
 
     }
+
+
+    @PostMapping("/external/{provider}")
+    public ResponseEntity<LoginResponse> externalLogin(@PathVariable AuthProvider provider, @Valid @RequestBody ExternalAuthRequest request) {
+
+        return ResponseEntity.ok(externalAuthService.authenticate(provider, request.credential()));
+
+    }
+
 
     @PostMapping("/register")
     public ResponseEntity<RegisterUserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
 
-         if (userRepository.existsByEmailIgnoreCase(request.email())) {
+        if (userRepository.existsByEmailIgnoreCase(request.email())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email ja cadastrado");
         }
 
