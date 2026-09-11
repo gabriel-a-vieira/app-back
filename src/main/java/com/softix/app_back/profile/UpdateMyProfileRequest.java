@@ -20,7 +20,27 @@ public record UpdateMyProfileRequest(
         LocalDate birthDate,
 
         @Size(max = 20, message = "Genero deve possuir no maximo 20 caracteres")
-        String gender
+        String gender,
+
+        @Size(max = 100, message = "Rua deve possuir no maximo 100 caracteres")
+        String street,
+
+        @Size(max = 15, message = "Numero deve possuir no maximo 15 caracteres")
+        String number,
+
+        @Size(max = 8, message = "CEP deve possuir no maximo 8 caracteres")
+        String postalCode,
+
+        @Size(max = 200,message = "Complemento deve possuir no maximo 200 caracteres")
+        String complement,
+
+        @Size(max = 100, message = "Bairro deve possuir no maximo 100 caracteres")
+        String neighborhood,
+
+        Double latitude,
+        Double longitude,
+        String city,
+        String state
 
 ) {
 }

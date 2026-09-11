@@ -206,9 +206,7 @@ public class CompanyService {
         City city = cityRepository.findByNameAndStateAbbreviation(request.getCity(), request.getState());
 
         if (city == null) {
-
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade nao encontrada");
-
         }
 
         address.setCity(city);

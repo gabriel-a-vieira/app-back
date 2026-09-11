@@ -1,7 +1,10 @@
 package com.softix.app_back.profile;
 
+import com.softix.app_back.address.Address;
 import com.softix.app_back.auth.external.AuthProvider;
 import com.softix.app_back.auth.external.UserExternalIdentityRepository;
+import com.softix.app_back.city.City;
+import com.softix.app_back.city.CityRepository;
 import com.softix.app_back.person.Person;
 import com.softix.app_back.person.PersonRepository;
 import com.softix.app_back.user.User;
@@ -29,12 +32,16 @@ public class ProfileService {
     PersonRepository personRepository;
 
     @Autowired
+    CityRepository cityRepository;
+;
+    @Autowired
     UserExternalIdentityRepository externalIdentityRepository;
 
     @Transactional(readOnly = true)
     public MyProfileDTO findMyProfile() {
 
         String userId = getCurrentUserId();
+
         User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado"));
 
         return toDTO(user);
@@ -46,7 +53,9 @@ public class ProfileService {
     public MyProfileDTO updateMyProfile(UpdateMyProfileRequest request) {
 
         String userId = getCurrentUserId();
+
         User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario nao encontrado"));
+
         String name = StringUtils.trimToNull(request.name());
 
         if (name == null) {
@@ -61,7 +70,7 @@ public class ProfileService {
 
         String phone = onlyNumbers(request.phone());
 
-        if (phone != null && !phone.isEmpty() && phone.length() < 10) {
+        if (phone != null && !phone.isEmpty() && (phone.length() < 10 || phone.length() > 11)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Telefone invalido");
         }
 
@@ -69,14 +78,24 @@ public class ProfileService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data de nascimento invalida");
         }
 
+        String postalCode = onlyNumbers(request.postalCode());
+
+        if (postalCode != null && !postalCode.isEmpty() && postalCode.length() != 8) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CEP deve possuir 8 digitos");
+        }
+
+        validateCoordinates(request.latitude(), request.longitude());
+
         user.setName(name);
 
         Person person = user.getPerson();
+
 
         if (person == null) {
 
             person = new Person();
             person.setCompanyId(user.getCompanyId());
+
         }
 
         person.setName(name);
@@ -84,24 +103,82 @@ public class ProfileService {
         person.setPhone(StringUtils.trimToNull(phone));
         person.setBirthDate(toDate(request.birthDate()));
         person.setGender(StringUtils.trimToNull(request.gender()));
+        person.setAddress(buildAddress(request, postalCode));
+        boolean newPerson = user.getPerson() == null;
+
         person = personRepository.save(person);
 
-        if (user.getPerson() == null || !person.getId().equals(user.getPersonId())) {
+        if (newPerson) {
             user.setPerson(person);
         }
 
         userRepository.save(user);
 
         return toDTO(user);
+
+    }
+
+
+    private Address buildAddress(UpdateMyProfileRequest request, String postalCode) {
+
+        String street = StringUtils.trimToNull(request.street());
+        String number = StringUtils.trimToNull(request.number());
+        String complement = StringUtils.trimToNull(request.complement());
+        String neighborhood = StringUtils.trimToNull(request.neighborhood());
+        String cityName = StringUtils.trimToNull(request.city());
+        String state = StringUtils.trimToNull(request.state());
+
+        boolean hasAddressData = street != null || number != null || postalCode != null || complement != null || neighborhood != null || cityName != null || state != null || request.latitude() != null || request.longitude() != null;
+
+        if (!hasAddressData) {
+            return null;
+        }
+
+        City city = resolveCity(cityName, state);
+
+        Address address = new Address();
+
+        address.setStreet(street);
+        address.setNumber(number);
+        address.setPostalCode(StringUtils.trimToNull(postalCode));
+        address.setComplement(complement);
+        address.setNeighborhood(neighborhood);
+        address.setLatitude(request.latitude());
+        address.setLongitude(request.longitude());
+        address.setCity(city);
+
+        return address;
+    }
+
+
+    private City resolveCity(String cityName, String state) {
+
+        if (cityName == null && state == null) {
+            return null;
+        }
+
+        if (cityName == null || state == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade e UF devem ser informadas juntas");
+        }
+
+        City city = cityRepository.findByNameAndStateAbbreviation(cityName, state);
+
+        if (city == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade nao encontrada");
+        }
+
+        return city;
+
     }
 
 
     private MyProfileDTO toDTO(User user) {
 
         Person person = user.getPerson();
+        Address address = person != null ? person.getAddress() : null;
+        City city = address != null ? address.getCity() : null;
 
         boolean googleLinked = externalIdentityRepository.existsByUserIdAndProvider(user.getId(), AuthProvider.GOOGLE);
-
         boolean completed = isPersonalDataCompleted(user, person);
 
         return new MyProfileDTO(
@@ -114,10 +191,17 @@ public class ProfileService {
                 person != null ? person.getPhone() : null,
                 person != null ? toLocalDate(person.getBirthDate()) : null,
                 person != null ? person.getGender() : null,
+                address != null ? address.getStreet() : null,
+                address != null ? address.getNumber() : null,
+                address != null ? address.getPostalCode() : null,
+                address != null ? address.getComplement() : null,
+                address != null ? address.getNeighborhood() : null,
+                address != null ? address.getLatitude() : null,
+                address != null ? address.getLongitude() : null,
+                city != null ? city.getName() : null,
+                city != null && city.getState() != null ? city.getState().getAbbreviation() : null,
                 googleLinked,
-                completed
-        );
-
+                completed);
     }
 
 
@@ -133,7 +217,30 @@ public class ProfileService {
         }
 
 
-        return person.getCpfCnpj() != null && !person.getCpfCnpj().isBlank() && person.getPhone() != null && !person.getPhone().isBlank() && person.getBirthDate() != null;
+        if (person.getCpfCnpj() == null || person.getCpfCnpj().isBlank() || person.getPhone() == null || person.getPhone().isBlank() || person.getBirthDate() == null) {
+            return false;
+        }
+
+        Address address = person.getAddress();
+
+        if (address == null) {
+            return false;
+        }
+
+
+        return address.getPostalCode() != null && !address.getPostalCode().isBlank() && address.getStreet() != null && !address.getStreet().isBlank() && address.getNumber() != null && !address.getNumber().isBlank() && address.getNeighborhood() != null && !address.getNeighborhood().isBlank() && address.getCity() != null;
+
+    }
+
+    private void validateCoordinates(Double latitude, Double longitude) {
+
+        if (latitude != null && (latitude < -90 || latitude > 90)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Latitude invalida");
+        }
+
+        if (longitude != null && (longitude < -180 || longitude > 180)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Longitude invalida");
+        }
 
     }
 
@@ -147,6 +254,7 @@ public class ProfileService {
         }
 
         return userId;
+
     }
 
 
