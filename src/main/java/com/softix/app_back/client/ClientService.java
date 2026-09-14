@@ -1,5 +1,6 @@
 package com.softix.app_back.client;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.address.Address;
 import com.softix.app_back.address.AddressDTO;
 import com.softix.app_back.city.City;
@@ -12,7 +13,6 @@ import com.softix.app_back.person.PersonService;
 import com.softix.app_back.user.User;
 import com.softix.app_back.user.UserRepository;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -24,25 +24,20 @@ import utils.security.SecurityUtils;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ClientService {
 
-    @Autowired
-    ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
 
-    @Autowired
-    CityRepository cityRepository;
+    private final CityRepository cityRepository;
 
-    @Autowired
-    PersonRepository personRepository;
+    private final PersonRepository personRepository;
 
-    @Autowired
-    CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
 
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    PersonService personService;
+    private final PersonService personService;
 
     public Page<ClientResponse> findAll(String search, String name, String cpfCnpj, String phone, String city, String state, String status, String preferredPaymentMethod, String companyId, Pageable pageable) {
 

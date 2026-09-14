@@ -1,7 +1,7 @@
 package com.softix.app_back.company.review;
 
+import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -12,13 +12,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 public class CompanyReviewController {
 
-    @Autowired
-    CompanyReviewService companyReviewService;
+    private final CompanyReviewService companyReviewService;
 
-    @Autowired
-    CompanyReviewImageService companyReviewImageService;
+    private final CompanyReviewImageService companyReviewImageService;
 
     @GetMapping("/public/company/{companyId}/reviews")
     public Page<CompanyReviewDTO> findPublic(@PathVariable String companyId,

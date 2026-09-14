@@ -1,6 +1,6 @@
 package com.softix.app_back.product;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,10 +13,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/product")
+@RequiredArgsConstructor
 public class ProductController {
 
-    @Autowired
-    ProductService productService;
+    private final ProductService productService;
 
 
     @GetMapping

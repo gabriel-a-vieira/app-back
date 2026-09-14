@@ -1,7 +1,7 @@
 package com.softix.app_back.availability;
 
+import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,10 +14,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/availability")
+@RequiredArgsConstructor
 public class AvailabilityController {
 
-    @Autowired
-    AvailabilityService availabilityService;
+    private final AvailabilityService availabilityService;
 
     @GetMapping
     public Page<AvailabilityDTO> findAll(@RequestParam(required = false) String search,

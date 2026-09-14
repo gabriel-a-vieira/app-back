@@ -1,5 +1,6 @@
 package com.softix.app_back.professional;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.address.Address;
 import com.softix.app_back.address.AddressDTO;
 import com.softix.app_back.city.City;
@@ -9,7 +10,6 @@ import com.softix.app_back.person.PersonRepository;
 import com.softix.app_back.person.PersonService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -22,19 +22,16 @@ import java.util.List;
 import static com.softix.app_back.professional.ProfessionalStatus.ACTIVE;
 
 @Service
+@RequiredArgsConstructor
 public class ProfessionalService {
 
-    @Autowired
-    ProfessionalRepository professionalRepository;
+    private final ProfessionalRepository professionalRepository;
 
-    @Autowired
-    PersonRepository personRepository;
+    private final PersonRepository personRepository;
 
-    @Autowired
-    PersonService personService;
+    private final PersonService personService;
 
-    @Autowired
-    CityRepository cityRepository;
+    private final CityRepository cityRepository;
 
     public Page<ProfessionalResponse> findAll(String search, String name, String cpfCnpj,
                                               String phone, String city, String state,

@@ -1,7 +1,7 @@
 package com.softix.app_back.city;
 
+import lombok.RequiredArgsConstructor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,13 +9,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/city")
+@RequiredArgsConstructor
 public class CityController {
 
-    @Autowired
-    CityService cityService;
+    private final CityService cityService;
 
-    @Autowired
-    CityRepository cityRepository;
+    private final CityRepository cityRepository;
 
     @GetMapping
     public List<City> findAll() {

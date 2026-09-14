@@ -1,9 +1,9 @@
 package com.softix.app_back.user;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.company.Company;
 import com.softix.app_back.company.CompanyRepository;
 import com.softix.app_back.config.JWTUserData;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,16 +14,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import utils.security.SecurityUtils;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
 
-    @Autowired
-    PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     public UserResponse createUser(CreateUserRequest request) {
 

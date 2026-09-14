@@ -1,14 +1,14 @@
 package com.softix.app_back.state;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class StateService {
 
-    @Autowired
-    StateRepository stateRepository;
+    private final StateRepository stateRepository;
 
     @Transactional
     public State save(StateDTO dto) {

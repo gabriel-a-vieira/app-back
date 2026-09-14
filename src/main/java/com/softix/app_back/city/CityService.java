@@ -1,25 +1,23 @@
 package com.softix.app_back.city;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.country.CountryRepository;
 import com.softix.app_back.state.StateRepository;
 import io.micrometer.common.util.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class CityService {
 
-    @Autowired
-    CityRepository cityRepository;
+    private final CityRepository cityRepository;
 
-    @Autowired
-    StateRepository stateRepository;
+    private final StateRepository stateRepository;
 
-    @Autowired
-    CountryRepository countryRepository;
+    private final CountryRepository countryRepository;
 
     @Transactional
     public City save(CityDTO dto) {

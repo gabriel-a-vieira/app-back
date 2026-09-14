@@ -1,15 +1,15 @@
 package com.softix.app_back.profile;
 
+import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/profile")
+@RequiredArgsConstructor
 public class ProfileController {
 
-    @Autowired
-    ProfileService profileService;
+    private final ProfileService profileService;
 
     @GetMapping("/me")
     public MyProfileDTO findMyProfile() {

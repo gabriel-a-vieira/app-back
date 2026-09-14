@@ -1,11 +1,11 @@
 package com.softix.app_back.company;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.address.Address;
 import com.softix.app_back.city.City;
 import com.softix.app_back.city.CityRepository;
 import com.softix.app_back.payment.PaymentMethod;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -18,13 +18,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CompanyService {
 
-    @Autowired
-    CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
 
-    @Autowired
-    CityRepository cityRepository;
+    private final CityRepository cityRepository;
 
 
     @Transactional(readOnly = true)
