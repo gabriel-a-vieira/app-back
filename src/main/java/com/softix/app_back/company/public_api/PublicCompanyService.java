@@ -3,6 +3,7 @@ package com.softix.app_back.company.public_api;
 import lombok.RequiredArgsConstructor;
 import com.softix.app_back.address.Address;
 import com.softix.app_back.company.*;
+import com.softix.app_back.company.favorite.CompanyFavoriteService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,8 @@ public class PublicCompanyService {
 
     private final CompanyRepository companyRepository;
 
+    private final CompanyFavoriteService companyFavoriteService;
+
     @Transactional(readOnly = true)
     public PublicCompanyDetailDTO findDetail(String companyId) {
 
@@ -33,7 +36,8 @@ public class PublicCompanyService {
                 buildOpeningHours(company),
                 company.getPaymentMethods(),
                 company.getAmenities(),
-                company.getInstagramUrl(), company.getFacebookUrl(), company.getWebsiteUrl(), company.getTiktokUrl());
+                company.getInstagramUrl(), company.getFacebookUrl(), company.getWebsiteUrl(), company.getTiktokUrl(),
+                companyFavoriteService.isFavorite(companyId));
 
     }
 

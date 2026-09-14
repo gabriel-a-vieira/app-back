@@ -6,17 +6,21 @@ public record CompanyResponse(
         String tradeName,
         CompanyType type,
         String typeLabel,
-        String status
+        String status,
+        String imageUrl,
+        boolean favorited
 ) {
 
-    public static CompanyResponse fromEntity(Company company) {
+    public static CompanyResponse fromEntity(Company company, boolean favorited) {
         return new CompanyResponse(
                 company.getId(),
                 company.getLegalName(),
                 company.getTradeName(),
                 company.getType(),
                 formatType(company.getType()),
-                company.getStatus().name()
+                company.getStatus().name(),
+                company.getImageUrl(),
+                favorited
         );
     }
 

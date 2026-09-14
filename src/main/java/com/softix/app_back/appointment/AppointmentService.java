@@ -6,6 +6,7 @@ import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentR
 import com.softix.app_back.availability.Availability;
 import com.softix.app_back.availability.AvailabilityRepository;
 import com.softix.app_back.client.Client;
+import com.softix.app_back.company.CompanyRepository;
 import com.softix.app_back.client.ClientRepository;
 import com.softix.app_back.client.ClientService;
 import com.softix.app_back.professional.Professional;
@@ -55,6 +56,8 @@ public class AppointmentService {
     private final CompanyRepository companyRepository;
 
     private final ClientService clientService;
+
+    private final AppointmentMapper appointmentMapper;
 
     @Transactional(readOnly = true)
     public Page<AppointmentDTO> findAll(String search, String status, String clientId, String professionalId, LocalDate dateFrom, LocalDate dateTo, String companyId, Pageable pageable) {
@@ -442,7 +445,7 @@ public class AppointmentService {
 
         String userId = SecurityUtils.userId();
         Appointment appointment = appointmentRepository.findMineById(id, userId).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado"));
-        return toCustomerDTO(appointment);
+        return appointmentMapper.toCustomerDTO(appointment);
 
     }
 

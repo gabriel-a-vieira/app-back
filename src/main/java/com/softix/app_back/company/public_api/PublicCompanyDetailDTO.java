@@ -26,7 +26,9 @@ public record PublicCompanyDetailDTO(
         String instagramUrl,
         String facebookUrl,
         String websiteUrl,
-        String tiktokUrl
+        String tiktokUrl,
+
+        boolean favorited
 
 ) {
 }

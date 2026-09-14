@@ -79,10 +79,11 @@ public class CompanyController {
     public Page<CompanyResponse> findCompanies(@RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "8") int size,
                                                @RequestParam(required = false) CompanyType type,
-                                               @RequestParam(required = false) String search) {
+                                               @RequestParam(required = false) String search,
+                                               @RequestParam(defaultValue = "false") boolean favoritesOnly) {
 
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
-        return companyService.findPublicCompanies(type, search, pageRequest);
+        return companyService.findPublicCompanies(type, search, favoritesOnly, pageRequest);
 
     }
 
