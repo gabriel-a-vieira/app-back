@@ -1,8 +1,8 @@
 package com.softix.app_back.client;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.payment.PaymentMethod;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,10 +15,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/client")
+@RequiredArgsConstructor
 public class ClientController {
 
-    @Autowired
-    ClientService clientService;
+    private final ClientService clientService;
 
     @GetMapping
     public Page<ClientResponse> findAll(

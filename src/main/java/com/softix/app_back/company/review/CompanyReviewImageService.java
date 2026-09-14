@@ -2,7 +2,7 @@ package com.softix.app_back.company.review;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
@@ -22,15 +22,15 @@ public class CompanyReviewImageService {
     public String save(MultipartFile file) {
 
         if (file == null || file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Imagem nao informada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Imagem nao informada");
         }
 
         if (!ALLOWED_TYPES.contains(file.getContentType())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Formato de imagem invalido");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Formato de imagem invalido");
         }
 
         if (file.getSize() > MAX_SIZE) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A imagem deve possuir no maximo 5 MB");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "A imagem deve possuir no maximo 5 MB");
         }
 
         try {
@@ -50,7 +50,7 @@ public class CompanyReviewImageService {
             return "/uploads/reviews/" + filename;
 
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao salvar imagem");
+            throw new BusinessException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao salvar imagem");
         }
 
     }

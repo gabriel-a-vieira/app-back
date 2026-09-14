@@ -1,5 +1,6 @@
 package com.softix.app_back.auth;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.auth.external.AuthProvider;
 import com.softix.app_back.auth.external.ExternalAuthService;
 import com.softix.app_back.auth.request.ExternalAuthRequest;
@@ -12,7 +13,6 @@ import com.softix.app_back.user.User;
 import com.softix.app_back.user.UserRepository;
 import com.softix.app_back.user.UserRole;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,27 +20,23 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 import utils.security.SecurityUtils;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
-    @Autowired
-    TokenConfig tokenConfig;
+    private final TokenConfig tokenConfig;
 
-    @Autowired
-    ExternalAuthService externalAuthService;
+    private final ExternalAuthService externalAuthService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
@@ -69,7 +65,7 @@ public class AuthController {
     public ResponseEntity<RegisterUserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
 
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email ja cadastrado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Email ja cadastrado");
         }
 
         String companyId = SecurityUtils.resolveCompanyId(request.companyId());

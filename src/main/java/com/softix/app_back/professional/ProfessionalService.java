@@ -1,5 +1,6 @@
 package com.softix.app_back.professional;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.address.Address;
 import com.softix.app_back.address.AddressDTO;
 import com.softix.app_back.city.City;
@@ -9,32 +10,28 @@ import com.softix.app_back.person.PersonRepository;
 import com.softix.app_back.person.PersonService;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 
 import java.util.List;
 
 import static com.softix.app_back.professional.ProfessionalStatus.ACTIVE;
 
 @Service
+@RequiredArgsConstructor
 public class ProfessionalService {
 
-    @Autowired
-    ProfessionalRepository professionalRepository;
+    private final ProfessionalRepository professionalRepository;
 
-    @Autowired
-    PersonRepository personRepository;
+    private final PersonRepository personRepository;
 
-    @Autowired
-    PersonService personService;
+    private final PersonService personService;
 
-    @Autowired
-    CityRepository cityRepository;
+    private final CityRepository cityRepository;
 
     public Page<ProfessionalResponse> findAll(String search, String name, String cpfCnpj,
                                               String phone, String city, String state,
@@ -54,7 +51,7 @@ public class ProfessionalService {
     public ProfessionalResponse findById(String id) {
 
         Professional professional = professionalRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profissional nao encontrado"));
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Profissional nao encontrado"));
 
         return ProfessionalResponse.fromEntity(professional);
 
@@ -70,12 +67,12 @@ public class ProfessionalService {
             if (BooleanUtils.isTrue(personRepository.existsById(dto.getPersonId()))) {
 
                 Person person = personRepository.findById(dto.getPersonId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pessoa nao encontrada"));
+                        .orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "Pessoa nao encontrada"));
 
                 professional.setPerson(person);
 
             } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pessoa nao encontrada");
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "Pessoa nao encontrada");
             }
 
         } else {
@@ -92,7 +89,7 @@ public class ProfessionalService {
     public Professional update(String id, ProfessionalDTO dto) {
 
         Professional professional = professionalRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profissional nao encontrado"));
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Profissional nao encontrado"));
 
         Person person = professional.getPerson();
 
@@ -120,7 +117,7 @@ public class ProfessionalService {
     public void deleteMany(List<String> ids) {
 
         if (ids == null || ids.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum profissional informado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Nenhum profissional informado");
         }
 
         List<Professional> professionals = professionalRepository.findByIdIn(ids);
@@ -183,7 +180,7 @@ public class ProfessionalService {
         if (city != null) {
             address.setCity(city);
         } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade nao encontrada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Cidade nao encontrada");
         }
 
         return address;

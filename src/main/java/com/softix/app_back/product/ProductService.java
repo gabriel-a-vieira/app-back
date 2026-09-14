@@ -1,14 +1,14 @@
 package com.softix.app_back.product;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.company.CompanyRepository;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 import utils.security.SecurityUtils;
 
 import java.math.BigDecimal;
@@ -16,13 +16,12 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ProductService {
 
-    @Autowired
-    ProductRepository productRepository;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
 
 
     @Transactional(readOnly = true)
@@ -47,7 +46,7 @@ public class ProductService {
                                String companyId) {
 
         String resolvedCompanyId = SecurityUtils.resolveCompanyId(companyId);
-        Product product = productRepository.findScopedById(id, resolvedCompanyId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto nao encontrado"));
+        Product product = productRepository.findScopedById(id, resolvedCompanyId).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Produto nao encontrado"));
 
         return new ProductDTO(product);
 
@@ -61,11 +60,11 @@ public class ProductService {
         String resolvedCompanyId = SecurityUtils.resolveCompanyId(dto.getCompanyId());
 
         if (resolvedCompanyId == null || resolvedCompanyId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empresa obrigatoria");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Empresa obrigatoria");
         }
 
         if (!companyRepository.existsById(resolvedCompanyId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empresa nao encontrada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Empresa nao encontrada");
         }
 
         Product product = new Product();
@@ -85,7 +84,7 @@ public class ProductService {
 
         String resolvedCompanyId = SecurityUtils.resolveCompanyId(dto.getCompanyId());
 
-        Product product = productRepository.findScopedById(id, resolvedCompanyId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto nao encontrado"));
+        Product product = productRepository.findScopedById(id, resolvedCompanyId).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Produto nao encontrado"));
 
         validate(dto);
         applyDTO(product, dto);
@@ -105,7 +104,7 @@ public class ProductService {
                            String companyId) {
 
         if (ids == null || ids.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum produto informado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Nenhum produto informado");
         }
 
         String resolvedCompanyId = SecurityUtils.resolveCompanyId(companyId);
@@ -124,7 +123,7 @@ public class ProductService {
     public List<ProductDTO> findPublicProducts(String companyId) {
 
         if (companyId == null || companyId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empresa nao informada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Empresa nao informada");
         }
 
         return productRepository.findPublicProducts(companyId).stream().map(ProductDTO::new).toList();
@@ -152,19 +151,19 @@ public class ProductService {
     private void validate(ProductDTO dto) {
 
         if (dto.getName() == null || dto.getName().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome do produto obrigatorio");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Nome do produto obrigatorio");
         }
 
         if (dto.getPrice() == null || dto.getPrice().compareTo(BigDecimal.ZERO) < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Preco invalido");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Preco invalido");
         }
 
         if (dto.getStockQuantity() == null || dto.getStockQuantity() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantidade em estoque invalida");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Quantidade em estoque invalida");
         }
 
         if (dto.getImageUrl() == null || dto.getImageUrl().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Imagem do produto obrigatoria");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Imagem do produto obrigatoria");
         }
 
     }
@@ -179,7 +178,7 @@ public class ProductService {
         try {
             return ProductStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status invalido");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Status invalido");
         }
 
     }

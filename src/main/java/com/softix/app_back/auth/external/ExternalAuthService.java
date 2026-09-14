@@ -1,30 +1,27 @@
 package com.softix.app_back.auth.external;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.auth.response.LoginResponse;
 import com.softix.app_back.config.TokenConfig;
 import com.softix.app_back.user.User;
 import com.softix.app_back.user.UserRepository;
 import com.softix.app_back.user.UserRole;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 
 @Service
+@RequiredArgsConstructor
 public class ExternalAuthService {
 
-    @Autowired
-    ExternalAuthStrategyResolver strategyResolver;
+    private final ExternalAuthStrategyResolver strategyResolver;
 
-    @Autowired
-    UserExternalIdentityRepository externalIdentityRepository;
+    private final UserExternalIdentityRepository externalIdentityRepository;
 
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    TokenConfig tokenConfig;
+    private final TokenConfig tokenConfig;
 
 
     @Transactional
@@ -43,7 +40,7 @@ public class ExternalAuthService {
             User existingUser = userRepository.findByEmailIgnoreCase(externalIdentity.email()).orElse(null);
 
             if (existingUser != null) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ja existe uma conta cadastrada com este email. Entre com email e senha para vincular sua conta Google.");
+                throw new BusinessException(HttpStatus.CONFLICT, "Ja existe uma conta cadastrada com este email. Entre com email e senha para vincular sua conta Google.");
             }
 
             user = createUser(externalIdentity);

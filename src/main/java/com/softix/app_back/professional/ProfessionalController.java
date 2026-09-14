@@ -1,6 +1,6 @@
 package com.softix.app_back.professional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,10 +14,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/professional")
+@RequiredArgsConstructor
 public class ProfessionalController {
 
-    @Autowired
-    ProfessionalService professionalService;
+    private final ProfessionalService professionalService;
 
     @GetMapping
     public Page<ProfessionalResponse> findAll(@RequestParam(required = false) String search,

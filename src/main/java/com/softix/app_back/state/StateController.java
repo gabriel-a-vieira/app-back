@@ -1,8 +1,8 @@
 package com.softix.app_back.state;
 
+import lombok.RequiredArgsConstructor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.softix.app_back.company.Company;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,13 +10,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/state")
+@RequiredArgsConstructor
 public class StateController {
 
-    @Autowired
-    StateService stateService;
+    private final StateService stateService;
 
-    @Autowired
-    StateRepository stateRepository;
+    private final StateRepository stateRepository;
 
     @GetMapping
     public List<State> findAll() {

@@ -5,6 +5,7 @@ import com.softix.app_back.state.State;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import utils.model.RootEntity;
 
 import java.util.Date;
@@ -30,6 +31,8 @@ public class City extends RootEntity {
     @Column(name = "id_country", length = 38)
     private String idCountry;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne
     @JoinColumn(name = "id_country", insertable = false, updatable = false)
     private Country country;
@@ -37,6 +40,8 @@ public class City extends RootEntity {
     @Column(name = "id_state", length = 38)
     private String idState;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne
     @JoinColumn(name = "id_state", insertable = false, updatable = false)
     private State state;

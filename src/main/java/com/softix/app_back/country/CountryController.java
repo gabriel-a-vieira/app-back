@@ -1,7 +1,7 @@
 package com.softix.app_back.country;
 
+import lombok.RequiredArgsConstructor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/country")
+@RequiredArgsConstructor
 public class CountryController {
 
-    @Autowired
-    CountryService countryService;
+    private final CountryService countryService;
 
     @PostMapping
     public ResponseEntity post(@RequestBody String jsonBody) {
