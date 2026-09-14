@@ -4,6 +4,7 @@ import com.softix.app_back.person.Person;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import utils.model.tenant.TenantEntity;
 
 import static com.softix.app_back.professional.ProfessionalStatus.ACTIVE;
@@ -14,6 +15,8 @@ import static com.softix.app_back.professional.ProfessionalStatus.ACTIVE;
 @Table(name = "professional")
 public class Professional extends TenantEntity {
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToOne
     @JoinColumn(name = "person_id")
     private Person person;

@@ -4,6 +4,7 @@ import com.softix.app_back.company.Company;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import utils.model.tenant.TenantEntity;
 
 import java.math.BigDecimal;
@@ -14,6 +15,8 @@ import java.math.BigDecimal;
 @Table(name = "product")
 public class Product extends TenantEntity {
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", insertable = false, updatable = false)
     private Company company;

@@ -4,6 +4,7 @@ import com.softix.app_back.user.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import utils.model.RootEntity;
 
 @EqualsAndHashCode(callSuper = true)
@@ -15,6 +16,8 @@ import utils.model.RootEntity;
 })
 public class UserExternalIdentity extends RootEntity {
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

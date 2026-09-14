@@ -4,6 +4,7 @@ import com.softix.app_back.user.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import utils.model.tenant.TenantEntity;
 
 @EqualsAndHashCode(callSuper = true)
@@ -15,6 +16,8 @@ public class CompanyReview extends TenantEntity {
     @Column(name = "user_id", length = 38, nullable = false)
     private String userId;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;

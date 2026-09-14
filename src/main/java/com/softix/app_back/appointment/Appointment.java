@@ -5,6 +5,7 @@ import com.softix.app_back.professional.Professional;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import utils.model.tenant.TenantEntity;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,8 @@ import java.time.LocalDateTime;
 @Table(name = "appointment")
 public class Appointment extends TenantEntity {
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id")
     private Client client;
@@ -22,6 +25,8 @@ public class Appointment extends TenantEntity {
     @Column(name = "client_id", length = 38, insertable = false, updatable = false)
     private String clientId;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "professional_id")
     private Professional professional;

@@ -4,6 +4,7 @@ import com.softix.app_back.service_offering.ServiceOffering;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import utils.model.tenant.TenantEntity;
 
 @EqualsAndHashCode(callSuper = true)
@@ -12,6 +13,8 @@ import utils.model.tenant.TenantEntity;
 @Table(name = "appointment_service_item")
 public class AppointmentServiceItem extends TenantEntity {
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "appointment_id")
     private Appointment appointment;
@@ -19,6 +22,8 @@ public class AppointmentServiceItem extends TenantEntity {
     @Column(name = "appointment_id", insertable = false, updatable = false)
     private String appointmentId;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_offering_id")
     private ServiceOffering serviceOffering;

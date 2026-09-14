@@ -4,6 +4,7 @@ import com.softix.app_back.professional.Professional;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import utils.model.tenant.TenantEntity;
 
 import java.time.DayOfWeek;
@@ -15,6 +16,8 @@ import java.time.LocalTime;
 @Table(name = "availability")
 public class Availability extends TenantEntity {
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne
     @JoinColumn(name = "professional_id", insertable = false, updatable = false)
     private Professional professional;
