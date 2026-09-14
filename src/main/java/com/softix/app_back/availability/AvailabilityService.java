@@ -1,7 +1,7 @@
 package com.softix.app_back.availability;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.professional.ProfessionalRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -15,13 +15,12 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AvailabilityService {
 
-    @Autowired
-    AvailabilityRepository availabilityRepository;
+    private final AvailabilityRepository availabilityRepository;
 
-    @Autowired
-    ProfessionalRepository professionalRepository;
+    private final ProfessionalRepository professionalRepository;
 
     @Transactional(readOnly = true)
     public Page<AvailabilityDTO> findAll(String search, String professionalId, DayOfWeek dayWeek, String companyId, Pageable pageable) {

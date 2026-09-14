@@ -1,5 +1,6 @@
 package com.softix.app_back.profile;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.address.Address;
 import com.softix.app_back.auth.external.AuthProvider;
 import com.softix.app_back.auth.external.UserExternalIdentityRepository;
@@ -10,7 +11,6 @@ import com.softix.app_back.person.PersonRepository;
 import com.softix.app_back.user.User;
 import com.softix.app_back.user.UserRepository;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,19 +23,16 @@ import java.time.ZoneId;
 import java.util.Date;
 
 @Service
+@RequiredArgsConstructor
 public class ProfileService {
 
-    @Autowired
-    UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    PersonRepository personRepository;
+    private final PersonRepository personRepository;
 
-    @Autowired
-    CityRepository cityRepository;
+    private final CityRepository cityRepository;
 ;
-    @Autowired
-    UserExternalIdentityRepository externalIdentityRepository;
+    private final UserExternalIdentityRepository externalIdentityRepository;
 
     @Transactional(readOnly = true)
     public MyProfileDTO findMyProfile() {

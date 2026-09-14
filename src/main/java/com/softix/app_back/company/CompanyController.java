@@ -1,6 +1,6 @@
 package com.softix.app_back.company;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -11,10 +11,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/company")
+@RequiredArgsConstructor
 public class CompanyController {
 
-    @Autowired
-    CompanyService companyService;
+    private final CompanyService companyService;
 
     @GetMapping("/admin")
     public Page<CompanyAdminResponse> findAdminCompanies(@RequestParam(required = false) CompanyType type,

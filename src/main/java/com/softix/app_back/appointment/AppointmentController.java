@@ -1,9 +1,9 @@
 package com.softix.app_back.appointment;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentDTO;
 import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentRequest;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,10 +17,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/appointment")
+@RequiredArgsConstructor
 public class AppointmentController {
 
-    @Autowired
-    AppointmentService appointmentService;
+    private final AppointmentService appointmentService;
 
     @GetMapping
     public Page<AppointmentDTO> findAll(@RequestParam(required = false) String search, @RequestParam(required = false) String status, @RequestParam(required = false) String clientId, @RequestParam(required = false) String professionalId, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo, @RequestParam(required = false) String companyId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {

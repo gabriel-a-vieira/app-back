@@ -1,7 +1,7 @@
 package com.softix.app_back.service_offering;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.company.CompanyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -13,13 +13,12 @@ import utils.security.SecurityUtils;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ServiceOfferingService {
 
-    @Autowired
-    ServiceOfferingRepository serviceOfferingRepository;
+    private final ServiceOfferingRepository serviceOfferingRepository;
 
-    @Autowired
-    CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
 
     public Page<ServiceOfferingDTO> findAll(String search, String status, Integer minDuration, Integer maxDuration, Double minPrice, Double maxPrice, String companyId, Pageable pageable) {
 

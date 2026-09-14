@@ -1,5 +1,6 @@
 package com.softix.app_back.appointment;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentDTO;
 import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentRequest;
 import com.softix.app_back.availability.Availability;
@@ -14,7 +15,6 @@ import com.softix.app_back.professional.ProfessionalRepository;
 import com.softix.app_back.service_offering.ServiceOffering;
 import com.softix.app_back.service_offering.ServiceOfferingRepository;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -35,35 +35,28 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class AppointmentService {
 
     private static final List<AppointmentStatus> BLOCKING_STATUSES = List.of(AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED);
 
     private static final int SLOT_INTERVAL_MINUTES = 15;
 
-    @Autowired
-    AppointmentRepository appointmentRepository;
+    private final AppointmentRepository appointmentRepository;
 
-    @Autowired
-    AppointmentServiceItemRepository appointmentServiceItemRepository;
+    private final AppointmentServiceItemRepository appointmentServiceItemRepository;
 
-    @Autowired
-    ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
 
-    @Autowired
-    ProfessionalRepository professionalRepository;
+    private final ProfessionalRepository professionalRepository;
 
-    @Autowired
-    ServiceOfferingRepository serviceOfferingRepository;
+    private final ServiceOfferingRepository serviceOfferingRepository;
 
-    @Autowired
-    AvailabilityRepository availabilityRepository;
+    private final AvailabilityRepository availabilityRepository;
 
-    @Autowired
-    CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
 
-    @Autowired
-    ClientService clientService;
+    private final ClientService clientService;
 
     @Transactional(readOnly = true)
     public Page<AppointmentDTO> findAll(String search, String status, String clientId, String professionalId, LocalDate dateFrom, LocalDate dateTo, String companyId, Pageable pageable) {

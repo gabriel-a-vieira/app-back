@@ -1,10 +1,10 @@
 package com.softix.app_back.company.review;
 
+import lombok.RequiredArgsConstructor;
 import com.softix.app_back.company.CompanyRepository;
 import com.softix.app_back.config.JWTUserData;
 import com.softix.app_back.user.User;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -14,13 +14,12 @@ import org.springframework.web.server.ResponseStatusException;
 import utils.security.SecurityUtils;
 
 @Service
+@RequiredArgsConstructor
 public class CompanyReviewService {
 
-    @Autowired
-    CompanyReviewRepository companyReviewRepository;
+    private final CompanyReviewRepository companyReviewRepository;
 
-    @Autowired
-    CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
 
     @Transactional(readOnly = true)
     public Page<CompanyReviewDTO> findPublic(String companyId, Pageable pageable) {
