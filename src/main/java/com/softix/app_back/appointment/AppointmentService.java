@@ -7,8 +7,6 @@ import com.softix.app_back.availability.AvailabilityRepository;
 import com.softix.app_back.client.Client;
 import com.softix.app_back.client.ClientRepository;
 import com.softix.app_back.client.ClientService;
-import com.softix.app_back.company.Company;
-import com.softix.app_back.company.CompanyRepository;
 import com.softix.app_back.professional.Professional;
 import com.softix.app_back.professional.ProfessionalRepository;
 import com.softix.app_back.service_offering.ServiceOffering;
@@ -60,10 +58,10 @@ public class AppointmentService {
     AvailabilityRepository availabilityRepository;
 
     @Autowired
-    CompanyRepository companyRepository;
+    ClientService clientService;
 
     @Autowired
-    ClientService clientService;
+    AppointmentMapper appointmentMapper;
 
     @Transactional(readOnly = true)
     public Page<AppointmentDTO> findAll(String search, String status, String clientId, String professionalId, LocalDate dateFrom, LocalDate dateTo, String companyId, Pageable pageable) {
@@ -76,7 +74,7 @@ public class AppointmentService {
 
         LocalDateTime dateToTime = dateTo != null ? dateTo.plusDays(1).atStartOfDay() : LocalDateTime.now().plusDays(7);
 
-        return appointmentRepository.findAdvanced(resolvedCompanyId, search, parsedStatus, clientId, professionalId, dateFromTime, dateToTime, pageable).map(this::toDTO);
+        return appointmentRepository.findAdvanced(resolvedCompanyId, search, parsedStatus, clientId, professionalId, dateFromTime, dateToTime, pageable).map(appointmentMapper::toDTO);
 
     }
 
@@ -86,7 +84,7 @@ public class AppointmentService {
         String companyId = SecurityUtils.resolveCompanyId(null);
         Appointment appointment = findAppointment(id, companyId);
 
-        return toDTO(appointment);
+        return appointmentMapper.toDTO(appointment);
 
     }
 
@@ -121,7 +119,7 @@ public class AppointmentService {
 
         saveServiceItems(appointment, services, companyId);
 
-        return toDTO(appointment);
+        return appointmentMapper.toDTO(appointment);
 
     }
 
@@ -161,7 +159,7 @@ public class AppointmentService {
 
         saveServiceItems(appointment, services, companyId);
 
-        return toDTO(appointment);
+        return appointmentMapper.toDTO(appointment);
 
     }
 
@@ -249,47 +247,6 @@ public class AppointmentService {
         }
 
         return slots.stream().distinct().toList();
-
-    }
-
-    private AppointmentDTO toDTO(Appointment appointment) {
-
-        AppointmentDTO dto = new AppointmentDTO();
-
-        dto.setId(appointment.getId());
-        dto.setCompanyId(appointment.getCompanyId());
-        dto.setStartAt(appointment.getStartAt());
-        dto.setEndAt(appointment.getEndAt());
-        dto.setStatus(appointment.getStatus());
-
-        if (appointment.getClient() != null) {
-
-            dto.setClientId(appointment.getClient().getId());
-
-            if (appointment.getClient().getPerson() != null) {
-                dto.setClientName(appointment.getClient().getPerson().getName());
-            }
-
-        }
-
-        if (appointment.getProfessional() != null) {
-
-            dto.setProfessionalId(appointment.getProfessional().getId());
-
-            if (appointment.getProfessional().getPerson() != null) {
-                dto.setProfessionalName(appointment.getProfessional().getPerson().getName());
-            }
-
-        }
-
-        List<AppointmentServiceItem> items = appointmentServiceItemRepository.findByAppointmentIdOrderByExecutionOrderAsc(appointment.getId());
-
-        List<AppointmentServiceItemDTO> serviceDTOs = items.stream().map(AppointmentServiceItemDTO::new).toList();
-
-        dto.setServices(serviceDTOs);
-        dto.setServiceIds(serviceDTOs.stream().map(AppointmentServiceItemDTO::getServiceOfferingId).toList());
-
-        return dto;
 
     }
 
@@ -475,7 +432,7 @@ public class AppointmentService {
 
         saveServiceItems(appointment, services, request.getCompanyId());
 
-        return toCustomerDTO(appointment);
+        return appointmentMapper.toCustomerDTO(appointment);
 
     }
 
@@ -483,7 +440,7 @@ public class AppointmentService {
     public Page<CustomerAppointmentDTO> findMine(Pageable pageable) {
 
         String userId = SecurityUtils.userId();
-        return appointmentRepository.findMine(userId, LocalDate.now().atStartOfDay(), pageable).map(this::toCustomerDTO);
+        return appointmentRepository.findMine(userId, LocalDate.now().atStartOfDay(), pageable).map(appointmentMapper::toCustomerDTO);
 
     }
 
@@ -492,7 +449,7 @@ public class AppointmentService {
 
         String userId = SecurityUtils.userId();
         Appointment appointment = appointmentRepository.findMineById(id, userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado"));
-        return toCustomerDTO(appointment);
+        return appointmentMapper.toCustomerDTO(appointment);
 
     }
 
@@ -514,52 +471,6 @@ public class AppointmentService {
         appointment.setStatus(AppointmentStatus.CANCELLED);
 
         appointmentRepository.save(appointment);
-
-    }
-
-    private CustomerAppointmentDTO toCustomerDTO(Appointment appointment) {
-
-        CustomerAppointmentDTO dto = new CustomerAppointmentDTO();
-
-        dto.setId(appointment.getId());
-        dto.setCompanyId(appointment.getCompanyId());
-        dto.setStartAt(appointment.getStartAt());
-        dto.setEndAt(appointment.getEndAt());
-        dto.setStatus(appointment.getStatus());
-        dto.setNotes(appointment.getNotes());
-        dto.setPrefersSilence(appointment.getPrefersSilence());
-
-        if (appointment.getProfessional() != null) {
-
-            dto.setProfessionalId(appointment.getProfessional().getId());
-
-            if (appointment.getProfessional().getPerson() != null) {
-                dto.setProfessionalName(appointment.getProfessional().getPerson().getName());
-            }
-
-        }
-
-        Company company = companyRepository.findById(appointment.getCompanyId()).orElse(null);
-
-        if (company != null) {
-
-            String companyName = company.getTradeName();
-
-            if (companyName == null || companyName.isBlank()) {
-                companyName = company.getLegalName();
-            }
-
-            dto.setCompanyName(companyName);
-
-        }
-
-        List<AppointmentServiceItem> items = appointmentServiceItemRepository.findByAppointmentIdOrderByExecutionOrderAsc(appointment.getId());
-        dto.setServices(items.stream().map(AppointmentServiceItemDTO::new).toList());
-
-        double total = items.stream().map(AppointmentServiceItem::getPrice).filter(Objects::nonNull).mapToDouble(Double::doubleValue).sum();
-        dto.setTotalPrice(total);
-
-        return dto;
 
     }
 
