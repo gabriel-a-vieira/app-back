@@ -38,7 +38,7 @@ public class Company extends RootEntity {
     @Embedded
     private Address address;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "instagram_url")

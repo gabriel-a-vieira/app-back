@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import com.softix.app_back.address.Address;
 import com.softix.app_back.city.City;
 import com.softix.app_back.city.CityRepository;
+import com.softix.app_back.company.favorite.CompanyFavoriteService;
 import com.softix.app_back.payment.PaymentMethod;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,8 @@ public class CompanyService {
     private final CompanyRepository companyRepository;
 
     private final CityRepository cityRepository;
+
+    private final CompanyFavoriteService companyFavoriteService;
 
 
     @Transactional(readOnly = true)
@@ -117,10 +120,17 @@ public class CompanyService {
 
 
     @Transactional(readOnly = true)
-    public Page<CompanyResponse> findPublicCompanies(CompanyType type, String search, Pageable pageable) {
+    public Page<CompanyResponse> findPublicCompanies(CompanyType type, String search, boolean favoritesOnly, Pageable pageable) {
 
         String normalizedSearch = StringUtils.trimToNull(search);
-        return companyRepository.findPublicCompanies(type, normalizedSearch, pageable).map(CompanyResponse::fromEntity);
+        Set<String> favoriteIds = companyFavoriteService.findFavoriteCompanyIds();
+
+        if (favoritesOnly && favoriteIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        return companyRepository.findPublicCompanies(type, normalizedSearch, favoritesOnly, new ArrayList<>(favoriteIds), pageable)
+                .map(company -> CompanyResponse.fromEntity(company, favoriteIds.contains(company.getId())));
 
     }
 

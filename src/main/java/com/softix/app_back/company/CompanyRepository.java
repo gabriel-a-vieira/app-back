@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface CompanyRepository extends JpaRepository<Company, String> {
 
     boolean existsByCnpj(String cnpj);
@@ -23,10 +25,15 @@ public interface CompanyRepository extends JpaRepository<Company, String> {
                     OR LOWER(c.tradeName) LIKE CONCAT('%', LOWER(CAST(:search AS string)), '%')
                     OR LOWER(c.legalName) LIKE CONCAT('%', LOWER(CAST(:search AS string)), '%')
                )
+               AND (:favoritesOnly = false OR c.id IN :favoriteIds)
             """)
     Page<Company> findPublicCompanies(@Param("type") CompanyType type,
 
                                       @Param("search") String search,
+
+                                      @Param("favoritesOnly") boolean favoritesOnly,
+
+                                      @Param("favoriteIds") List<String> favoriteIds,
 
                                       Pageable pageable);
 
