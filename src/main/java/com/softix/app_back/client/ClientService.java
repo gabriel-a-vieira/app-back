@@ -18,7 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 import utils.security.SecurityUtils;
 
 import java.util.List;
@@ -64,7 +64,7 @@ public class ClientService {
     }
 
     public ClientResponse findById(String id) {
-        Client client = clientRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente nao encontrado"));
+        Client client = clientRepository.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Cliente nao encontrado"));
 
         return ClientResponse.fromEntity(client);
     }
@@ -75,7 +75,7 @@ public class ClientService {
         String companyId = SecurityUtils.resolveCompanyId(request.companyId());
 
         if (request.cpfCnpj() != null && !request.cpfCnpj().isBlank() && clientRepository.existsByCompanyIdAndPerson_CpfCnpj(companyId, onlyNumbers(request.cpfCnpj()))) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente ja cadastrado para esta empresa");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Cliente ja cadastrado para esta empresa");
         }
 
         Client client = new Client();
@@ -94,12 +94,12 @@ public class ClientService {
     @Transactional
     public ClientResponse update(String id, ClientRequest request) {
 
-        Client client = clientRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente nao encontrado"));
+        Client client = clientRepository.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Cliente nao encontrado"));
 
         String cpfCnpj = onlyNumbers(request.cpfCnpj());
 
         if (cpfCnpj != null && !cpfCnpj.isBlank() && clientRepository.existsByCompanyIdAndPerson_CpfCnpjAndIdNot(client.getCompanyId(), cpfCnpj, client.getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CPF/CNPJ ja utilizado por outro cliente nesta empresa");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "CPF/CNPJ ja utilizado por outro cliente nesta empresa");
         }
 
         Person person = client.getPerson();
@@ -129,7 +129,7 @@ public class ClientService {
     public void deleteMany(List<String> ids) {
 
         if (ids == null || ids.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum cliente informado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Nenhum cliente informado");
         }
 
         List<Client> clients = clientRepository.findByIdIn(ids);
@@ -194,7 +194,7 @@ public class ClientService {
         }
 
         if (city == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade nao encontrada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Cidade nao encontrada");
         }
 
         address.setCity(city);
@@ -216,11 +216,11 @@ public class ClientService {
         String userId = SecurityUtils.userId();
 
         if (userId == null || userId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario nao autenticado");
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "Usuario nao autenticado");
         }
 
         if (companyId == null || companyId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empresa nao informada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Empresa nao informada");
         }
 
         Client existingClient = clientRepository.findByCompanyIdAndUserId(companyId, userId).orElse(null);
@@ -229,7 +229,7 @@ public class ClientService {
             return existingClient;
         }
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario nao encontrado"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "Usuario nao encontrado"));
 
         Person person = new Person();
 

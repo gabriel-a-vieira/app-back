@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 import utils.security.SecurityUtils;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class ServiceOfferingService {
 
     public ServiceOfferingDTO findById(String id) {
 
-        ServiceOffering serviceOffering = serviceOfferingRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Servico nao encontrado"));
+        ServiceOffering serviceOffering = serviceOfferingRepository.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Servico nao encontrado"));
 
         return new ServiceOfferingDTO(serviceOffering);
 
@@ -47,7 +47,7 @@ public class ServiceOfferingService {
         String name = dto.getName().trim();
 
         if (serviceOfferingRepository.existsByCompanyIdAndNameIgnoreCase(companyId, name)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ja existe um servico com este nome nesta empresa");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Ja existe um servico com este nome nesta empresa");
         }
 
         ServiceOffering serviceOffering = new ServiceOffering();
@@ -69,12 +69,12 @@ public class ServiceOfferingService {
     @Transactional
     public ServiceOfferingDTO update(String id, ServiceOfferingDTO dto) {
 
-        ServiceOffering serviceOffering = serviceOfferingRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Servico nao encontrado"));
+        ServiceOffering serviceOffering = serviceOfferingRepository.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Servico nao encontrado"));
 
         String name = dto.getName().trim();
 
         if (serviceOfferingRepository.existsByCompanyIdAndNameIgnoreCaseAndIdNot(serviceOffering.getCompanyId(), name, id)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ja existe outro servico com este nome nesta empresa");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Ja existe outro servico com este nome nesta empresa");
         }
 
         serviceOffering.setName(name);
@@ -99,7 +99,7 @@ public class ServiceOfferingService {
     public void deleteMany(List<String> ids) {
 
         if (ids == null || ids.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum servico informado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Nenhum servico informado");
         }
 
         List<ServiceOffering> services = serviceOfferingRepository.findByIdIn(ids);
@@ -121,7 +121,7 @@ public class ServiceOfferingService {
         try {
             return ServiceOfferingStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status invalido");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Status invalido");
         }
     }
 

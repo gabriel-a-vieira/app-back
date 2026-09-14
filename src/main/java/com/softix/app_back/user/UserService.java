@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import utils.security.SecurityUtils;
@@ -30,7 +30,7 @@ public class UserService {
         JWTUserData currentUser = SecurityUtils.currentUser();
 
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email ja cadastrado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Email ja cadastrado");
         }
 
         String companyId = SecurityUtils.resolveCompanyId(request.companyId());

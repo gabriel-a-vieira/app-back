@@ -20,7 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 import utils.security.SecurityUtils;
 
 @RestController
@@ -69,7 +69,7 @@ public class AuthController {
     public ResponseEntity<RegisterUserResponse> register(@Valid @RequestBody RegisterUserRequest request) {
 
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email ja cadastrado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Email ja cadastrado");
         }
 
         String companyId = SecurityUtils.resolveCompanyId(request.companyId());

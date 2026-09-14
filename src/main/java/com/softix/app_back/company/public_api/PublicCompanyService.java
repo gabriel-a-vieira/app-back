@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 
 import java.time.DayOfWeek;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class PublicCompanyService {
     @Transactional(readOnly = true)
     public PublicCompanyDetailDTO findDetail(String companyId) {
 
-        Company company = companyRepository.findById(companyId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa nao encontrada"));
+        Company company = companyRepository.findById(companyId).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Empresa nao encontrada"));
 
         return new PublicCompanyDetailDTO(
 

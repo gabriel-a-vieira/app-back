@@ -15,7 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 
 import java.util.List;
 
@@ -54,7 +54,7 @@ public class ProfessionalService {
     public ProfessionalResponse findById(String id) {
 
         Professional professional = professionalRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profissional nao encontrado"));
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Profissional nao encontrado"));
 
         return ProfessionalResponse.fromEntity(professional);
 
@@ -70,12 +70,12 @@ public class ProfessionalService {
             if (BooleanUtils.isTrue(personRepository.existsById(dto.getPersonId()))) {
 
                 Person person = personRepository.findById(dto.getPersonId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pessoa nao encontrada"));
+                        .orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "Pessoa nao encontrada"));
 
                 professional.setPerson(person);
 
             } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Pessoa nao encontrada");
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "Pessoa nao encontrada");
             }
 
         } else {
@@ -92,7 +92,7 @@ public class ProfessionalService {
     public Professional update(String id, ProfessionalDTO dto) {
 
         Professional professional = professionalRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profissional nao encontrado"));
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Profissional nao encontrado"));
 
         Person person = professional.getPerson();
 
@@ -120,7 +120,7 @@ public class ProfessionalService {
     public void deleteMany(List<String> ids) {
 
         if (ids == null || ids.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum profissional informado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Nenhum profissional informado");
         }
 
         List<Professional> professionals = professionalRepository.findByIdIn(ids);
@@ -183,7 +183,7 @@ public class ProfessionalService {
         if (city != null) {
             address.setCity(city);
         } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade nao encontrada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Cidade nao encontrada");
         }
 
         return address;

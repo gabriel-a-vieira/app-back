@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 import utils.security.SecurityUtils;
 
 import java.time.DayOfWeek;
@@ -35,7 +35,7 @@ public class AvailabilityService {
     @Transactional(readOnly = true)
     public AvailabilityDTO findById(String id) {
 
-        Availability availability = availabilityRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Disponibilidade nao encontrada"));
+        Availability availability = availabilityRepository.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Disponibilidade nao encontrada"));
 
         return new AvailabilityDTO(availability);
 
@@ -67,7 +67,7 @@ public class AvailabilityService {
     @Transactional
     public AvailabilityDTO update(String id, AvailabilityDTO dto) {
 
-        Availability availability = availabilityRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Disponibilidade nao encontrada"));
+        Availability availability = availabilityRepository.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Disponibilidade nao encontrada"));
 
         String companyId = SecurityUtils.resolveCompanyId(dto.getCompanyId());
         validateCompany(companyId);
@@ -91,7 +91,7 @@ public class AvailabilityService {
     public void deleteMany(List<String> ids) {
 
         if (ids == null || ids.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhuma disponibilidade informada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Nenhuma disponibilidade informada");
         }
 
         List<Availability> availabilities = availabilityRepository.findByIdIn(ids);
@@ -108,13 +108,13 @@ public class AvailabilityService {
     private void validateProfessional(String professionalId, String companyId) {
 
         if (professionalId == null || professionalId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profissional nao informado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Profissional nao informado");
         }
 
         boolean exists = professionalRepository.existsByIdAndCompanyId(professionalId, companyId);
 
         if (!exists) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profissional nao encontrado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Profissional nao encontrado");
         }
 
     }
@@ -122,7 +122,7 @@ public class AvailabilityService {
     private void validateCompany(String companyId) {
 
         if (companyId == null || companyId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empresa nao informada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Empresa nao informada");
         }
 
     }
@@ -130,11 +130,11 @@ public class AvailabilityService {
     private void validateTimeRange(LocalTime startTime, LocalTime endTime) {
 
         if (startTime == null || endTime == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horario inicial e final sao obrigatorios");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Horario inicial e final sao obrigatorios");
         }
 
         if (!startTime.isBefore(endTime)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horario inicial deve ser anterior ao horario final");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Horario inicial deve ser anterior ao horario final");
         }
 
     }
@@ -144,7 +144,7 @@ public class AvailabilityService {
         boolean overlap = availabilityRepository.existsOverlappingAvailability(companyId, professionalId, dayWeek, startTime, endTime, ignoreId);
 
         if (overlap) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ja existe uma disponibilidade que conflita com este horario");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Ja existe uma disponibilidade que conflita com este horario");
         }
 
     }
