@@ -3,6 +3,7 @@ package com.softix.app_back.company.favorite;
 import com.softix.app_back.company.CompanyRepository;
 import com.softix.app_back.shared.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +41,17 @@ public class CompanyFavoriteService {
         favorite.setCompanyId(companyId);
         favorite.setUserId(userId);
 
-        companyFavoriteRepository.save(favorite);
+        try {
+            companyFavoriteRepository.saveAndFlush(favorite);
+        } catch (DataIntegrityViolationException e) {
+            /*
+             * Corrida entre dois cliques quase simultaneos: outra
+             * requisicao ja criou o mesmo favorito (company_id +
+             * user_id) entre a checagem acima e este insert. Ja esta
+             * favoritado, entao tratamos como sucesso.
+             */
+            return true;
+        }
 
         return true;
 
