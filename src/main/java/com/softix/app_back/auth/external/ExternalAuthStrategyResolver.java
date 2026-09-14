@@ -2,7 +2,7 @@ package com.softix.app_back.auth.external;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -28,7 +28,7 @@ public class ExternalAuthStrategyResolver {
         ExternalAuthStrategy strategy = strategies.get(provider);
 
         if (strategy == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Provedor de autenticacao nao suportado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Provedor de autenticacao nao suportado");
         }
 
         return strategy;

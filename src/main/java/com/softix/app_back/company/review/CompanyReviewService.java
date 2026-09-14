@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 import utils.security.SecurityUtils;
 
 @Service
@@ -48,7 +48,7 @@ public class CompanyReviewService {
         validateCompany(dto.getCompanyId());
 
         if (companyReviewRepository.existsByCompanyIdAndUserId(dto.getCompanyId(), userId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Voce ja avaliou este estabelecimento");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Voce ja avaliou este estabelecimento");
         }
 
         CompanyReview review = new CompanyReview();
@@ -68,7 +68,7 @@ public class CompanyReviewService {
     @Transactional
     public CompanyReviewDTO update(String id, CompanyReviewDTO dto) {
 
-        CompanyReview review = companyReviewRepository.findByIdAndUserId(id, SecurityUtils.userId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Avaliacao nao encontrada"));
+        CompanyReview review = companyReviewRepository.findByIdAndUserId(id, SecurityUtils.userId()).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Avaliacao nao encontrada"));
 
         review.setRating(dto.getRating());
         review.setComment(StringUtils.trim(dto.getComment()));
@@ -83,7 +83,7 @@ public class CompanyReviewService {
     @Transactional
     public void delete(String id) {
 
-        CompanyReview review = companyReviewRepository.findByIdAndUserId(id, SecurityUtils.userId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Avaliacao nao encontrada"));
+        CompanyReview review = companyReviewRepository.findByIdAndUserId(id, SecurityUtils.userId()).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Avaliacao nao encontrada"));
         companyReviewRepository.delete(review);
 
     }
@@ -91,7 +91,7 @@ public class CompanyReviewService {
     private void validateCompany(String companyId) {
 
         if (!companyRepository.existsById(companyId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empresa nao encontrada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Empresa nao encontrada");
         }
 
     }

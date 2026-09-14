@@ -20,7 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 import utils.security.SecurityUtils;
 
 import java.time.DayOfWeek;
@@ -162,7 +162,7 @@ public class AppointmentService {
     public void cancelMany(List<String> ids) {
 
         if (ids == null || ids.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhum agendamento informado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Nenhum agendamento informado");
         }
 
         String companyId = SecurityUtils.resolveCompanyId(null);
@@ -177,7 +177,7 @@ public class AppointmentService {
         for (Appointment appointment : appointments) {
 
             if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Agendamento concluido nao pode ser cancelado");
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "Agendamento concluido nao pode ser cancelado");
             }
 
             appointment.setStatus(AppointmentStatus.CANCELLED);
@@ -288,10 +288,10 @@ public class AppointmentService {
 
     private Appointment findAppointment(String id, String companyId) {
 
-        Appointment appointment = appointmentRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado"));
+        Appointment appointment = appointmentRepository.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado"));
 
         if (companyId != null && !companyId.isBlank() && !companyId.equals(appointment.getCompanyId())) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado");
+            throw new BusinessException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado");
         }
 
         return appointment;
@@ -299,17 +299,17 @@ public class AppointmentService {
     }
 
     private Client findClient(String id, String companyId) {
-        return clientRepository.findByIdAndCompanyId(id, companyId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente nao encontrado"));
+        return clientRepository.findByIdAndCompanyId(id, companyId).orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "Cliente nao encontrado"));
     }
 
     private Professional findProfessional(String id, String companyId) {
-        return professionalRepository.findByIdAndCompanyId(id, companyId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profissional nao encontrado"));
+        return professionalRepository.findByIdAndCompanyId(id, companyId).orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "Profissional nao encontrado"));
     }
 
     private List<ServiceOffering> findServices(List<String> ids, String companyId) {
 
         if (ids == null || ids.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selecione pelo menos um servico");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Selecione pelo menos um servico");
         }
 
         List<String> uniqueIds = ids.stream().filter(Objects::nonNull).distinct().toList();
@@ -317,7 +317,7 @@ public class AppointmentService {
         List<ServiceOffering> found = serviceOfferingRepository.findByIdInAndCompanyId(uniqueIds, companyId);
 
         if (found.size() != uniqueIds.size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Um ou mais servicos nao foram encontrados");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Um ou mais servicos nao foram encontrados");
         }
 
         Map<String, ServiceOffering> byId = found.stream().collect(Collectors.toMap(ServiceOffering::getId, Function.identity()));
@@ -357,7 +357,7 @@ public class AppointmentService {
         LocalDateTime endAt = startAt.plusMinutes(totalMinutes);
 
         if (!startAt.toLocalDate().equals(endAt.toLocalDate())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O agendamento nao pode ultrapassar o final do dia");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "O agendamento nao pode ultrapassar o final do dia");
         }
 
         return endAt;
@@ -379,7 +379,7 @@ public class AppointmentService {
         boolean fits = availabilities.stream().anyMatch(availability -> !startTime.isBefore(availability.getStartTime()) && !endTime.isAfter(availability.getEndTime()));
 
         if (!fits) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horario fora da disponibilidade do profissional");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Horario fora da disponibilidade do profissional");
         }
 
     }
@@ -389,7 +389,7 @@ public class AppointmentService {
         boolean conflict = appointmentRepository.existsConflict(companyId, professionalId, BLOCKING_STATUSES, startAt, endAt, ignoreId);
 
         if (conflict) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este horario ja esta ocupado para o profissional");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Este horario ja esta ocupado para o profissional");
         }
 
     }
@@ -407,7 +407,7 @@ public class AppointmentService {
         try {
             return AppointmentStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status invalido");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Status invalido");
         }
 
     }
@@ -415,7 +415,7 @@ public class AppointmentService {
     private void validateCompanyId(String companyId) {
 
         if (companyId == null || companyId.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empresa nao informada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Empresa nao informada");
         }
 
     }
@@ -423,11 +423,11 @@ public class AppointmentService {
     private void validateStartAt(LocalDateTime startAt) {
 
         if (startAt == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data e horario sao obrigatorios");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Data e horario sao obrigatorios");
         }
 
         if (startAt.isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nao e possivel criar um agendamento no passado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Nao e possivel criar um agendamento no passado");
         }
 
     }
@@ -446,7 +446,7 @@ public class AppointmentService {
         LocalDateTime startAt = request.getStartAt();
 
         if (startAt == null || startAt.isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horario de agendamento invalido");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Horario de agendamento invalido");
         }
 
         LocalDateTime endAt = calculateEndAt(startAt, services);
@@ -484,7 +484,7 @@ public class AppointmentService {
     public CustomerAppointmentDTO findMineById(String id) {
 
         String userId = SecurityUtils.userId();
-        Appointment appointment = appointmentRepository.findMineById(id, userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado"));
+        Appointment appointment = appointmentRepository.findMineById(id, userId).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado"));
         return toCustomerDTO(appointment);
 
     }
@@ -494,10 +494,10 @@ public class AppointmentService {
 
         String userId = SecurityUtils.userId();
 
-        Appointment appointment = appointmentRepository.findMineById(id, userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado"));
+        Appointment appointment = appointmentRepository.findMineById(id, userId).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado"));
 
         if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Agendamento concluido nao pode ser cancelado");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Agendamento concluido nao pode ser cancelado");
         }
 
         if (appointment.getStatus() == AppointmentStatus.CANCELLED) {

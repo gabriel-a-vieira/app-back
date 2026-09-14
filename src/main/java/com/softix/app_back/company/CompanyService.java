@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 
 import java.time.DayOfWeek;
 import java.util.*;
@@ -57,7 +57,7 @@ public class CompanyService {
         String cnpj = normalizeCnpj(request.getCnpj());
 
         if (companyRepository.existsByCnpj(cnpj)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ja existe uma empresa cadastrada com este CNPJ");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Ja existe uma empresa cadastrada com este CNPJ");
         }
 
         Company company = new Company();
@@ -82,7 +82,7 @@ public class CompanyService {
         String cnpj = normalizeCnpj(request.getCnpj());
 
         if (companyRepository.existsByCnpjAndIdNot(cnpj, id)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ja existe outra empresa cadastrada com este CNPJ");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Ja existe outra empresa cadastrada com este CNPJ");
         }
 
         applyRequest(company, request);
@@ -102,7 +102,7 @@ public class CompanyService {
     public void deactivateMany(List<String> ids) {
 
         if (ids == null || ids.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhuma empresa informada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Nenhuma empresa informada");
         }
 
         List<Company> companies = companyRepository.findAllById(ids);
@@ -205,7 +205,7 @@ public class CompanyService {
         City city = cityRepository.findByNameAndStateAbbreviation(request.getCity(), request.getState());
 
         if (city == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade nao encontrada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Cidade nao encontrada");
         }
 
         address.setCity(city);
@@ -218,19 +218,19 @@ public class CompanyService {
     private void validateRequiredFields(CompanySaveRequest request) {
 
         if (StringUtils.isBlank(request.getLegalName())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Razao social obrigatoria");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Razao social obrigatoria");
         }
 
         if (StringUtils.isBlank(request.getTradeName())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome fantasia obrigatorio");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Nome fantasia obrigatorio");
         }
 
         if (StringUtils.isBlank(request.getCnpj())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CNPJ obrigatorio");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "CNPJ obrigatorio");
         }
 
         if (request.getType() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de empresa obrigatorio");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Tipo de empresa obrigatorio");
         }
 
     }
@@ -241,11 +241,11 @@ public class CompanyService {
         for (CompanyOpeningHourRequest hour : hours) {
 
             if (hour.getDayWeek() == null || hour.getStartTime() == null || hour.getEndTime() == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horario de funcionamento invalido");
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "Horario de funcionamento invalido");
             }
 
             if (!hour.getStartTime().isBefore(hour.getEndTime())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horario inicial deve ser menor que o horario final");
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "Horario inicial deve ser menor que o horario final");
             }
 
         }
@@ -264,7 +264,7 @@ public class CompanyService {
                 CompanyOpeningHourRequest current = dayHours.get(i);
 
                 if (current.getStartTime().isBefore(previous.getEndTime())) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Existem horarios de funcionamento sobrepostos");
+                    throw new BusinessException(HttpStatus.BAD_REQUEST, "Existem horarios de funcionamento sobrepostos");
                 }
 
             }
@@ -275,7 +275,7 @@ public class CompanyService {
 
 
     private Company findCompany(String id) {
-        return companyRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa nao encontrada"));
+        return companyRepository.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Empresa nao encontrada"));
     }
 
 

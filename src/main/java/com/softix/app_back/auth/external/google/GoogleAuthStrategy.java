@@ -10,7 +10,7 @@ import com.softix.app_back.auth.external.ExternalIdentity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -34,7 +34,7 @@ public class GoogleAuthStrategy implements ExternalAuthStrategy {
     public ExternalIdentity authenticate(String credential) {
 
         if (credential == null || credential.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Credencial Google nao informada");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Credencial Google nao informada");
         }
 
         try {
@@ -42,7 +42,7 @@ public class GoogleAuthStrategy implements ExternalAuthStrategy {
             GoogleIdToken idToken = verifier.verify(credential);
 
             if (idToken == null) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token Google invalido");
+                throw new BusinessException(HttpStatus.UNAUTHORIZED, "Token Google invalido");
             }
 
             GoogleIdToken.Payload payload = idToken.getPayload();
@@ -54,21 +54,21 @@ public class GoogleAuthStrategy implements ExternalAuthStrategy {
             String picture = payload.get("picture") != null ? payload.get("picture").toString() : null;
 
             if (providerUserId == null || providerUserId.isBlank()) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Identificador Google invalido");
+                throw new BusinessException(HttpStatus.UNAUTHORIZED, "Identificador Google invalido");
             }
 
             if (email == null || email.isBlank()) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Conta Google sem email");
+                throw new BusinessException(HttpStatus.UNAUTHORIZED, "Conta Google sem email");
             }
 
             if (!Boolean.TRUE.equals(emailVerified)) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email Google nao verificado");
+                throw new BusinessException(HttpStatus.UNAUTHORIZED, "Email Google nao verificado");
             }
 
             return new ExternalIdentity(AuthProvider.GOOGLE, providerUserId, email, name, picture, true);
 
         } catch (GeneralSecurityException | IOException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nao foi possivel validar o token Google", e);
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "Nao foi possivel validar o token Google", e);
         }
 
     }

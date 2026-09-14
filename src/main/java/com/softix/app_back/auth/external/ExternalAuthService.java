@@ -9,7 +9,7 @@ import com.softix.app_back.user.UserRole;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import com.softix.app_back.shared.exception.BusinessException;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +40,7 @@ public class ExternalAuthService {
             User existingUser = userRepository.findByEmailIgnoreCase(externalIdentity.email()).orElse(null);
 
             if (existingUser != null) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Ja existe uma conta cadastrada com este email. Entre com email e senha para vincular sua conta Google.");
+                throw new BusinessException(HttpStatus.CONFLICT, "Ja existe uma conta cadastrada com este email. Entre com email e senha para vincular sua conta Google.");
             }
 
             user = createUser(externalIdentity);
