@@ -2,8 +2,12 @@ package com.softix.app_back.permission;
 
 import com.softix.app_back.config.JWTUserData;
 import com.softix.app_back.shared.exception.BusinessException;
+import com.softix.app_back.user.User;
+import com.softix.app_back.user.UserRepository;
 import com.softix.app_back.user.UserRole;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,25 +25,41 @@ public class PermissionService {
 
     private static final List<UserRole> CONFIGURABLE_ROLES = List.of(UserRole.COMPANY_ADMIN, UserRole.PROFESSIONAL);
 
-    private final RolePermissionRepository rolePermissionRepository;
+    private final UserPermissionRepository userPermissionRepository;
 
-    public List<RolePermissionResponse> findMatrix() {
+    private final UserRepository userRepository;
 
-        requireMasterAdmin();
+    public Page<UserPermissionProfileResponse> findConfiguredProfiles(String search, Pageable pageable) {
 
-        Map<String, RolePermission> existing = new HashMap<>();
+        requireCompanyAdmin();
 
-        for (RolePermission permission : rolePermissionRepository.findAll()) {
-            existing.put(key(permission.getRole(), permission.getModule()), permission);
+        List<String> userIds = userPermissionRepository.findDistinctUserIds();
+
+        if (userIds.isEmpty()) {
+            return Page.empty(pageable);
         }
 
-        List<RolePermissionResponse> matrix = new ArrayList<>();
+        return userRepository.findByIdInAndSearch(userIds, search, pageable)
+                .map(user -> new UserPermissionProfileResponse(user.getId(), user.getName(), user.getEmail(), user.getRole()));
 
-        for (UserRole role : CONFIGURABLE_ROLES) {
-            for (SystemModule module : SystemModule.values()) {
-                RolePermission permission = existing.get(key(role, module));
-                matrix.add(toResponse(role, module, permission));
-            }
+    }
+
+    public List<ModulePermissionEntry> findUserMatrix(String userId) {
+
+        requireCompanyAdmin();
+
+        requireConfigurableUser(userId);
+
+        Map<SystemModule, UserPermission> existing = new HashMap<>();
+
+        for (UserPermission permission : userPermissionRepository.findByUserId(userId)) {
+            existing.put(permission.getModule(), permission);
+        }
+
+        List<ModulePermissionEntry> matrix = new ArrayList<>();
+
+        for (SystemModule module : SystemModule.values()) {
+            matrix.add(toEntry(module, existing.get(module)));
         }
 
         return matrix;
@@ -47,27 +67,35 @@ public class PermissionService {
     }
 
     @Transactional
-    public void updateMatrix(List<RolePermissionRequest> requests) {
+    public void updateUserMatrix(String userId, List<ModulePermissionEntry> entries) {
 
-        requireMasterAdmin();
+        requireCompanyAdmin();
 
-        for (RolePermissionRequest request : requests) {
+        requireConfigurableUser(userId);
 
-            RolePermission permission = rolePermissionRepository
-                    .findByRoleAndModule(request.role(), request.module())
-                    .orElseGet(RolePermission::new);
+        for (ModulePermissionEntry entry : entries) {
 
-            permission.setRole(request.role());
-            permission.setModule(request.module());
-            permission.setCanCreate(request.canCreate());
-            permission.setCanUpdate(request.canUpdate());
-            permission.setCanList(request.canList());
-            permission.setCanDelete(request.canDelete());
+            UserPermission permission = userPermissionRepository
+                    .findByUserIdAndModule(userId, entry.module())
+                    .orElseGet(UserPermission::new);
 
-            rolePermissionRepository.save(permission);
+            permission.setUserId(userId);
+            permission.setModule(entry.module());
+            permission.setCanCreate(entry.canCreate());
+            permission.setCanUpdate(entry.canUpdate());
+            permission.setCanList(entry.canList());
+            permission.setCanDelete(entry.canDelete());
+
+            userPermissionRepository.save(permission);
 
         }
 
+    }
+
+    @Transactional
+    public void deleteProfiles(List<String> userIds) {
+        requireCompanyAdmin();
+        userPermissionRepository.deleteByUserIdIn(userIds);
     }
 
     public Map<SystemModule, ModulePermissionResponse> findMyPermissions() {
@@ -96,7 +124,7 @@ public class PermissionService {
                 continue;
             }
 
-            RolePermission permission = rolePermissionRepository.findByRoleAndModule(role, module).orElse(null);
+            UserPermission permission = userPermissionRepository.findByUserIdAndModule(user.userId(), module).orElse(null);
 
             result.put(module, permission == null ? ModulePermissionResponse.fullAccess() : toModuleResponse(permission));
 
@@ -106,20 +134,34 @@ public class PermissionService {
 
     }
 
-    private void requireMasterAdmin() {
-        if (!SecurityUtils.isMasterAdmin()) {
-            throw new BusinessException(HttpStatus.FORBIDDEN, "Apenas o administrador da plataforma pode gerenciar permissoes.");
+    private void requireCompanyAdmin() {
+        JWTUserData user = SecurityUtils.currentUser();
+
+        if (user == null || !"COMPANY_ADMIN".equalsIgnoreCase(user.role())) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Apenas o administrador da empresa pode gerenciar permissoes.");
         }
     }
 
-    private RolePermissionResponse toResponse(UserRole role, SystemModule module, RolePermission permission) {
+    private User requireConfigurableUser(String userId) {
 
-        if (permission == null) {
-            return new RolePermissionResponse(role, module, true, true, true, true);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.BAD_REQUEST, "Usuario nao encontrado"));
+
+        if (!CONFIGURABLE_ROLES.contains(user.getRole())) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Este usuario nao pode ter permissoes configuradas.");
         }
 
-        return new RolePermissionResponse(
-                role,
+        return user;
+
+    }
+
+    private ModulePermissionEntry toEntry(SystemModule module, UserPermission permission) {
+
+        if (permission == null) {
+            return new ModulePermissionEntry(module, true, true, true, true);
+        }
+
+        return new ModulePermissionEntry(
                 module,
                 permission.isCanCreate(),
                 permission.isCanUpdate(),
@@ -129,17 +171,13 @@ public class PermissionService {
 
     }
 
-    private ModulePermissionResponse toModuleResponse(RolePermission permission) {
+    private ModulePermissionResponse toModuleResponse(UserPermission permission) {
         return new ModulePermissionResponse(
                 permission.isCanCreate(),
                 permission.isCanUpdate(),
                 permission.isCanList(),
                 permission.isCanDelete()
         );
-    }
-
-    private String key(UserRole role, SystemModule module) {
-        return role.name() + ":" + module.name();
     }
 
     private UserRole parseRole(String role) {

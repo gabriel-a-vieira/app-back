@@ -1,6 +1,5 @@
 package com.softix.app_back.permission;
 
-import com.softix.app_back.user.UserRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,24 +8,25 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import utils.model.RootEntity;
+import utils.model.tenant.TenantEntity;
 
 /**
- * Global (not tenant-scoped) config: which CRUD actions a role can perform on
- * a module. A missing row for a given (role, module) means "not restricted
- * yet" and is treated as fully allowed — see PermissionAspect/PermissionService.
+ * Per-company, per-user config: which CRUD actions a specific user can
+ * perform on a module. Tenant-scoped (each company parametrizes its own
+ * COMPANY_ADMIN/PROFESSIONAL users independently). A missing row for a given
+ * (user, module) means "not restricted yet" and is treated as fully allowed
+ * — see PermissionAspect/PermissionService.
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-@Table(name = "role_permission", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_role_permission_role_module", columnNames = {"role", "module"})
+@Table(name = "user_permission", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_user_permission_user_module", columnNames = {"user_id", "module"})
 })
-public class RolePermission extends RootEntity {
+public class UserPermission extends TenantEntity {
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 30)
-    private UserRole role;
+    @Column(name = "user_id", nullable = false, length = 38)
+    private String userId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "module", nullable = false, length = 30)

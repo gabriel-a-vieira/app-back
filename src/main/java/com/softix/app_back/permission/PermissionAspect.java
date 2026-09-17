@@ -23,7 +23,7 @@ public class PermissionAspect {
 
     private static final String ACCESS_DENIED_MESSAGE = "Voce nao tem permissao para executar esta acao.";
 
-    private final RolePermissionRepository rolePermissionRepository;
+    private final UserPermissionRepository userPermissionRepository;
 
     @Before("@annotation(requiresPermission)")
     public void checkPermission(RequiresPermission requiresPermission) {
@@ -50,8 +50,8 @@ public class PermissionAspect {
             throw new BusinessException(HttpStatus.FORBIDDEN, ACCESS_DENIED_MESSAGE);
         }
 
-        RolePermission permission = rolePermissionRepository
-                .findByRoleAndModule(role, requiresPermission.module())
+        UserPermission permission = userPermissionRepository
+                .findByUserIdAndModule(user.userId(), requiresPermission.module())
                 .orElse(null);
 
         if (permission != null && !isAllowed(permission, requiresPermission.action())) {
@@ -60,7 +60,7 @@ public class PermissionAspect {
 
     }
 
-    private boolean isAllowed(RolePermission permission, CrudAction action) {
+    private boolean isAllowed(UserPermission permission, CrudAction action) {
         return switch (action) {
             case CREATE -> permission.isCanCreate();
             case UPDATE -> permission.isCanUpdate();
