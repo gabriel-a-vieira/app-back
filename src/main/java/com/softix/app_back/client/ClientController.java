@@ -2,6 +2,9 @@ package com.softix.app_back.client;
 
 import lombok.RequiredArgsConstructor;
 import com.softix.app_back.payment.PaymentMethod;
+import com.softix.app_back.permission.CrudAction;
+import com.softix.app_back.permission.RequiresPermission;
+import com.softix.app_back.permission.SystemModule;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +23,7 @@ public class ClientController {
 
     private final ClientService clientService;
 
+    @RequiresPermission(module = SystemModule.CLIENT, action = CrudAction.LIST)
     @GetMapping
     public Page<ClientResponse> findAll(
             @RequestParam(required = false) String search,
@@ -54,17 +58,20 @@ public class ClientController {
         );
     }
 
+    @RequiresPermission(module = SystemModule.CLIENT, action = CrudAction.LIST)
     @GetMapping("/{id}")
     public ClientResponse findById(@PathVariable String id) {
         return clientService.findById(id);
     }
 
+    @RequiresPermission(module = SystemModule.CLIENT, action = CrudAction.CREATE)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ClientResponse save(@Valid @RequestBody ClientRequest request) {
         return clientService.save(request);
     }
 
+    @RequiresPermission(module = SystemModule.CLIENT, action = CrudAction.UPDATE)
     @PutMapping("/{id}")
     public ClientResponse update(
             @PathVariable String id,
@@ -73,6 +80,7 @@ public class ClientController {
         return clientService.update(id, request);
     }
 
+    @RequiresPermission(module = SystemModule.CLIENT, action = CrudAction.DELETE)
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMany(@RequestBody List<String> ids) {

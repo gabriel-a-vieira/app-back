@@ -1,6 +1,9 @@
 package com.softix.app_back.product;
 
 import lombok.RequiredArgsConstructor;
+import com.softix.app_back.permission.CrudAction;
+import com.softix.app_back.permission.RequiresPermission;
+import com.softix.app_back.permission.SystemModule;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +22,7 @@ public class ProductController {
     private final ProductService productService;
 
 
+    @RequiresPermission(module = SystemModule.PRODUCT, action = CrudAction.LIST)
     @GetMapping
     public Page<ProductDTO> findAll(@RequestParam(required = false) String search,
                                     @RequestParam(required = false) String status,
@@ -40,6 +44,7 @@ public class ProductController {
     }
 
 
+    @RequiresPermission(module = SystemModule.PRODUCT, action = CrudAction.LIST)
     @GetMapping("/{id}")
     public ProductDTO findById(@PathVariable String id,
                                @RequestParam(required = false) String companyId) {
@@ -47,6 +52,7 @@ public class ProductController {
     }
 
 
+    @RequiresPermission(module = SystemModule.PRODUCT, action = CrudAction.CREATE)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProductDTO create(@RequestBody ProductDTO dto) {
@@ -54,6 +60,7 @@ public class ProductController {
     }
 
 
+    @RequiresPermission(module = SystemModule.PRODUCT, action = CrudAction.UPDATE)
     @PutMapping("/{id}")
     public ProductDTO update(@PathVariable String id,
                              @RequestBody ProductDTO dto) {
@@ -62,6 +69,7 @@ public class ProductController {
     }
 
 
+    @RequiresPermission(module = SystemModule.PRODUCT, action = CrudAction.DELETE)
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMany(@RequestBody List<String> ids,

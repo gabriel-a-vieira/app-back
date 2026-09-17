@@ -1,6 +1,9 @@
 package com.softix.app_back.service_offering;
 
 import lombok.RequiredArgsConstructor;
+import com.softix.app_back.permission.CrudAction;
+import com.softix.app_back.permission.RequiresPermission;
+import com.softix.app_back.permission.SystemModule;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +21,7 @@ public class ServiceOfferingController {
 
     private final ServiceOfferingService serviceOfferingService;
 
+    @RequiresPermission(module = SystemModule.SERVICE_OFFERING, action = CrudAction.LIST)
     @GetMapping
     public Page<ServiceOfferingDTO> findAll(@RequestParam(required = false) String search,
                                             @RequestParam(required = false) String status,
@@ -35,22 +39,26 @@ public class ServiceOfferingController {
 
     }
 
+    @RequiresPermission(module = SystemModule.SERVICE_OFFERING, action = CrudAction.LIST)
     @GetMapping("/{id}")
     public ServiceOfferingDTO findById(@PathVariable String id) {
         return serviceOfferingService.findById(id);
     }
 
+    @RequiresPermission(module = SystemModule.SERVICE_OFFERING, action = CrudAction.CREATE)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ServiceOfferingDTO create(@Valid @RequestBody ServiceOfferingDTO dto) {
         return serviceOfferingService.save(dto);
     }
 
+    @RequiresPermission(module = SystemModule.SERVICE_OFFERING, action = CrudAction.UPDATE)
     @PutMapping("/{id}")
     public ServiceOfferingDTO update(@PathVariable String id, @Valid @RequestBody ServiceOfferingDTO dto) {
         return serviceOfferingService.update(id, dto);
     }
 
+    @RequiresPermission(module = SystemModule.SERVICE_OFFERING, action = CrudAction.DELETE)
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMany(@RequestBody List<String> ids) {

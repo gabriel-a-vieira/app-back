@@ -1,6 +1,9 @@
 package com.softix.app_back.availability;
 
 import lombok.RequiredArgsConstructor;
+import com.softix.app_back.permission.CrudAction;
+import com.softix.app_back.permission.RequiresPermission;
+import com.softix.app_back.permission.SystemModule;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +22,7 @@ public class AvailabilityController {
 
     private final AvailabilityService availabilityService;
 
+    @RequiresPermission(module = SystemModule.AVAILABILITY, action = CrudAction.LIST)
     @GetMapping
     public Page<AvailabilityDTO> findAll(@RequestParam(required = false) String search,
 
@@ -38,23 +42,27 @@ public class AvailabilityController {
 
     }
 
+    @RequiresPermission(module = SystemModule.AVAILABILITY, action = CrudAction.LIST)
     @GetMapping("/{id}")
     public AvailabilityDTO findById(@PathVariable String id) {
         return availabilityService.findById(id);
     }
 
+    @RequiresPermission(module = SystemModule.AVAILABILITY, action = CrudAction.CREATE)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AvailabilityDTO create(@Valid @RequestBody AvailabilityDTO dto) {
         return availabilityService.save(dto);
     }
 
+    @RequiresPermission(module = SystemModule.AVAILABILITY, action = CrudAction.UPDATE)
     @PutMapping("/{id}")
     public AvailabilityDTO update(@PathVariable String id,
                                   @Valid @RequestBody AvailabilityDTO dto) {
         return availabilityService.update(id, dto);
     }
 
+    @RequiresPermission(module = SystemModule.AVAILABILITY, action = CrudAction.DELETE)
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMany(@RequestBody List<String> ids) {
