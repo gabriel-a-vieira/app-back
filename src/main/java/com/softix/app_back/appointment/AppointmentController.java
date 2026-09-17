@@ -3,6 +3,9 @@ package com.softix.app_back.appointment;
 import lombok.RequiredArgsConstructor;
 import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentDTO;
 import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentRequest;
+import com.softix.app_back.permission.CrudAction;
+import com.softix.app_back.permission.RequiresPermission;
+import com.softix.app_back.permission.SystemModule;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +25,7 @@ public class AppointmentController {
 
     private final AppointmentService appointmentService;
 
+    @RequiresPermission(module = SystemModule.APPOINTMENT, action = CrudAction.LIST)
     @GetMapping
     public Page<AppointmentDTO> findAll(@RequestParam(required = false) String search, @RequestParam(required = false) String status, @RequestParam(required = false) String clientId, @RequestParam(required = false) String professionalId, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo, @RequestParam(required = false) String companyId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 
@@ -31,22 +35,26 @@ public class AppointmentController {
 
     }
 
+    @RequiresPermission(module = SystemModule.APPOINTMENT, action = CrudAction.LIST)
     @GetMapping("/{id}")
     public AppointmentDTO findById(@PathVariable String id) {
         return appointmentService.findById(id);
     }
 
+    @RequiresPermission(module = SystemModule.APPOINTMENT, action = CrudAction.CREATE)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AppointmentDTO create(@Valid @RequestBody AppointmentDTO dto) {
         return appointmentService.save(dto);
     }
 
+    @RequiresPermission(module = SystemModule.APPOINTMENT, action = CrudAction.UPDATE)
     @PutMapping("/{id}")
     public AppointmentDTO update(@PathVariable String id, @Valid @RequestBody AppointmentDTO dto) {
         return appointmentService.update(id, dto);
     }
 
+    @RequiresPermission(module = SystemModule.APPOINTMENT, action = CrudAction.DELETE)
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void cancelMany(@RequestBody List<String> ids) {
