@@ -4,6 +4,12 @@ import lombok.RequiredArgsConstructor;
 import com.softix.app_back.permission.CrudAction;
 import com.softix.app_back.permission.RequiresPermission;
 import com.softix.app_back.permission.SystemModule;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,22 +19,44 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @RequiresPermission(module = SystemModule.USER, action = CrudAction.LIST)
     @GetMapping
-    public List<User> getAll() {
-        return userRepository.findAllUnfiltered();
+    public Page<UserResponse> findAll(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UserRole role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
+        return userService.findAll(search, role, pageable);
     }
 
-    @PutMapping
-    public String put() {
-        return "PUT";
+    @RequiresPermission(module = SystemModule.USER, action = CrudAction.LIST)
+    @GetMapping("/{id}")
+    public UserResponse findById(@PathVariable String id) {
+        return userService.findById(id);
     }
 
+    @RequiresPermission(module = SystemModule.USER, action = CrudAction.CREATE)
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserResponse create(@Valid @RequestBody CreateUserRequest request) {
+        return userService.createUser(request);
+    }
+
+    @RequiresPermission(module = SystemModule.USER, action = CrudAction.UPDATE)
+    @PutMapping("/{id}")
+    public UserResponse update(@PathVariable String id, @Valid @RequestBody UpdateUserRequest request) {
+        return userService.update(id, request);
+    }
+
+    @RequiresPermission(module = SystemModule.USER, action = CrudAction.DELETE)
     @DeleteMapping
-    public String delete() {
-        return "DELETE";
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteMany(@RequestBody List<String> ids) {
+        userService.deleteMany(ids);
     }
 
 }

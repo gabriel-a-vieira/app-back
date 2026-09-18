@@ -2,7 +2,6 @@ package com.softix.app_back.permission;
 
 import com.softix.app_back.config.JWTUserData;
 import com.softix.app_back.shared.exception.BusinessException;
-import com.softix.app_back.user.UserRole;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,14 +25,17 @@ import static org.mockito.Mockito.when;
 /**
  * Covers PermissionAspect's gate: MASTER_ADMIN always bypasses, a role
  * outside {COMPANY_ADMIN, PROFESSIONAL} is always denied, and a configurable
- * role is allowed unless an explicit RolePermission row denies that specific
- * action -- a missing row means "not restricted yet" (default allow).
+ * role is allowed unless an explicit UserPermission row (keyed by the
+ * caller's own userId) denies that specific action -- a missing row means
+ * "not restricted yet" (default allow).
  */
 @ExtendWith(MockitoExtension.class)
 class PermissionAspectTest {
 
+    private static final String USER_ID = "user-1";
+
     @Mock
-    private RolePermissionRepository rolePermissionRepository;
+    private UserPermissionRepository userPermissionRepository;
 
     @InjectMocks
     private PermissionAspect permissionAspect;
@@ -53,7 +55,7 @@ class PermissionAspectTest {
     }
 
     private void authenticateAs(String role) {
-        JWTUserData user = JWTUserData.builder().userId("user-1").companyId("company-1").role(role).email("user@softix.com").build();
+        JWTUserData user = JWTUserData.builder().userId(USER_ID).companyId("company-1").role(role).email("user@softix.com").build();
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null));
     }
 
@@ -62,7 +64,7 @@ class PermissionAspectTest {
         assertThatCode(() -> permissionAspect.checkPermission(requiresPermission("annotatedCreateClient")))
                 .doesNotThrowAnyException();
 
-        verify(rolePermissionRepository, never()).findByRoleAndModule(any(), any());
+        verify(userPermissionRepository, never()).findByUserIdAndModule(any(), any());
     }
 
     @Test
@@ -72,7 +74,7 @@ class PermissionAspectTest {
         assertThatCode(() -> permissionAspect.checkPermission(requiresPermission("annotatedCreateClient")))
                 .doesNotThrowAnyException();
 
-        verify(rolePermissionRepository, never()).findByRoleAndModule(any(), any());
+        verify(userPermissionRepository, never()).findByUserIdAndModule(any(), any());
     }
 
     @Test
@@ -89,7 +91,7 @@ class PermissionAspectTest {
     void checkPermission_allowsWhenNoRowExistsYet() throws NoSuchMethodException {
         authenticateAs("COMPANY_ADMIN");
 
-        when(rolePermissionRepository.findByRoleAndModule(UserRole.COMPANY_ADMIN, SystemModule.CLIENT))
+        when(userPermissionRepository.findByUserIdAndModule(USER_ID, SystemModule.CLIENT))
                 .thenReturn(Optional.empty());
 
         assertThatCode(() -> permissionAspect.checkPermission(requiresPermission("annotatedCreateClient")))
@@ -100,15 +102,15 @@ class PermissionAspectTest {
     void checkPermission_deniesWhenTheConfiguredRowForbidsTheAction() throws NoSuchMethodException {
         authenticateAs("PROFESSIONAL");
 
-        RolePermission permission = new RolePermission();
-        permission.setRole(UserRole.PROFESSIONAL);
+        UserPermission permission = new UserPermission();
+        permission.setUserId(USER_ID);
         permission.setModule(SystemModule.CLIENT);
         permission.setCanCreate(false);
         permission.setCanUpdate(true);
         permission.setCanList(true);
         permission.setCanDelete(true);
 
-        when(rolePermissionRepository.findByRoleAndModule(UserRole.PROFESSIONAL, SystemModule.CLIENT))
+        when(userPermissionRepository.findByUserIdAndModule(USER_ID, SystemModule.CLIENT))
                 .thenReturn(Optional.of(permission));
 
         assertThatThrownBy(() -> permissionAspect.checkPermission(requiresPermission("annotatedCreateClient")))
@@ -121,15 +123,15 @@ class PermissionAspectTest {
     void checkPermission_allowsWhenTheConfiguredRowGrantsTheAction() throws NoSuchMethodException {
         authenticateAs("PROFESSIONAL");
 
-        RolePermission permission = new RolePermission();
-        permission.setRole(UserRole.PROFESSIONAL);
+        UserPermission permission = new UserPermission();
+        permission.setUserId(USER_ID);
         permission.setModule(SystemModule.CLIENT);
         permission.setCanCreate(true);
         permission.setCanUpdate(false);
         permission.setCanList(false);
         permission.setCanDelete(false);
 
-        when(rolePermissionRepository.findByRoleAndModule(UserRole.PROFESSIONAL, SystemModule.CLIENT))
+        when(userPermissionRepository.findByUserIdAndModule(USER_ID, SystemModule.CLIENT))
                 .thenReturn(Optional.of(permission));
 
         assertThatCode(() -> permissionAspect.checkPermission(requiresPermission("annotatedCreateClient")))
