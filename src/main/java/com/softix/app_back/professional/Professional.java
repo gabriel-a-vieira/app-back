@@ -27,5 +27,8 @@ public class Professional extends TenantEntity {
     @Column(name = "status")
     private ProfessionalStatus status = ACTIVE;
 
+    @Column(name = "user_id", length = 38)
+    private String userId;
+
 }
 

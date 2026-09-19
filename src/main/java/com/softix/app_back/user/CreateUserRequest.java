@@ -7,5 +7,7 @@ import jakarta.validation.constraints.NotNull;
 public record CreateUserRequest(@NotBlank String name,
                                 @NotBlank @Email String email,
                                 @NotBlank String password,
-                                @NotNull UserRole role, String companyId) {
+                                @NotNull UserRole role, String companyId,
+                                String clientId, String professionalId,
+                                Boolean autoCreateLinkedRecord) {
 }

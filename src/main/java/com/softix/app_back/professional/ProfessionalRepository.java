@@ -63,4 +63,8 @@ public interface ProfessionalRepository extends JpaRepository<Professional, Stri
 
     List<Professional> findByCompanyIdAndStatusOrderByPerson_NameAsc(String companyId, ProfessionalStatus status);
 
+    Optional<Professional> findByCompanyIdAndUserId(String companyId, String userId);
+
+    boolean existsByCompanyIdAndUserIdAndIdNot(String companyId, String userId, String id);
+
 }

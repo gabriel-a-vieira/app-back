@@ -12,6 +12,7 @@ import com.softix.app_back.person.PersonRepository;
 import com.softix.app_back.person.PersonService;
 import com.softix.app_back.user.User;
 import com.softix.app_back.user.UserRepository;
+import com.softix.app_back.user.UserRole;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,13 +56,19 @@ public class ClientService {
             paymentMethod = PaymentMethod.valueOf(preferredPaymentMethod.toUpperCase());
         }
 
-        return clientRepository.findAdvanced(resolvedCompanyId, search, name, cpfCnpj, phone, city, state, clientStatus, paymentMethod, pageable).map(ClientResponse::fromEntity);
+        return clientRepository.findAdvanced(resolvedCompanyId, search, name, cpfCnpj, phone, city, state, clientStatus, paymentMethod, pageable).map(this::toResponse);
     }
 
     public ClientResponse findById(String id) {
         Client client = clientRepository.findById(id).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Cliente nao encontrado"));
 
-        return ClientResponse.fromEntity(client);
+        return toResponse(client);
+    }
+
+    private ClientResponse toResponse(Client client) {
+        User linkedUser = client.getUserId() != null ? userRepository.findById(client.getUserId()).orElse(null) : null;
+
+        return ClientResponse.fromEntity(client, linkedUser);
     }
 
     @Transactional
@@ -80,10 +87,11 @@ public class ClientService {
         client.setPreferredPaymentMethod(request.preferredPaymentMethod());
         client.setAdditionalNotes(request.additionalNotes());
         client.setStatus(request.status() != null ? request.status() : ClientStatus.ACTIVE);
+        client.setUserId(resolveUserId(request.userId(), companyId, null));
 
         clientRepository.save(client);
 
-        return ClientResponse.fromEntity(client);
+        return toResponse(client);
     }
 
     @Transactional
@@ -115,9 +123,35 @@ public class ClientService {
             client.setStatus(request.status());
         }
 
+        client.setUserId(resolveUserId(request.userId(), client.getCompanyId(), client.getId()));
+
         clientRepository.save(client);
 
-        return ClientResponse.fromEntity(client);
+        return toResponse(client);
+    }
+
+    private String resolveUserId(String userId, String companyId, String currentClientId) {
+
+        if (userId == null || userId.isBlank()) {
+            return null;
+        }
+
+        User user = userRepository.findByIdAndCompanyId(userId, companyId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Usuario nao encontrado"));
+
+        if (user.getRole() != UserRole.CLIENT) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Usuario selecionado nao e do tipo Cliente");
+        }
+
+        boolean alreadyLinkedToAnother = currentClientId != null
+                ? clientRepository.existsByCompanyIdAndUserIdAndIdNot(companyId, userId, currentClientId)
+                : clientRepository.findByCompanyIdAndUserId(companyId, userId).isPresent();
+
+        if (alreadyLinkedToAnother) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Usuario ja vinculado a outro cliente");
+        }
+
+        return user.getId();
     }
 
     @Transactional
