@@ -4,11 +4,18 @@ import com.softix.app_back.availability.Availability;
 import com.softix.app_back.availability.AvailabilityRepository;
 import com.softix.app_back.client.Client;
 import com.softix.app_back.client.ClientRepository;
+import com.softix.app_back.company.CompanyRepository;
+import com.softix.app_back.notification.NotificationEvent;
+import com.softix.app_back.notification.NotificationEventType;
+import com.softix.app_back.notification.NotificationService;
+import com.softix.app_back.person.Person;
 import com.softix.app_back.professional.Professional;
 import com.softix.app_back.professional.ProfessionalRepository;
 import com.softix.app_back.service_offering.ServiceOffering;
 import com.softix.app_back.service_offering.ServiceOfferingRepository;
 import com.softix.app_back.shared.exception.BusinessException;
+import com.softix.app_back.user.User;
+import com.softix.app_back.user.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,6 +75,15 @@ class AppointmentServiceTest {
     @Mock
     private AppointmentMapper appointmentMapper;
 
+    @Mock
+    private CompanyRepository companyRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private NotificationService notificationService;
+
     @InjectMocks
     private AppointmentService appointmentService;
 
@@ -89,12 +106,16 @@ class AppointmentServiceTest {
 
     /** Builds a valid, in-window request: 30-minute service, 09:00-17:00 availability, no conflicts. */
     private AppointmentDTO buildValidDto(LocalDateTime startAt) {
+        Client client = new Client();
+        client.setId(CLIENT_ID);
+        return buildValidDto(startAt, client);
+    }
+
+    /** Same as above, but with a caller-supplied client (e.g. one linked to a User, for notification tests). */
+    private AppointmentDTO buildValidDto(LocalDateTime startAt, Client client) {
 
         Professional professional = new Professional();
         professional.setId(PROFESSIONAL_ID);
-
-        Client client = new Client();
-        client.setId(CLIENT_ID);
 
         ServiceOffering service = new ServiceOffering();
         service.setId(SERVICE_ID);
@@ -191,6 +212,70 @@ class AppointmentServiceTest {
         assertThat(saved.getStartAt()).isEqualTo(startAt);
         assertThat(saved.getEndAt()).isEqualTo(startAt.plusMinutes(30));
         assertThat(saved.getCompanyId()).isEqualTo(COMPANY_ID);
+
+        // The plain client from buildValidDto has no linked User -- nothing to notify.
+        verify(notificationService, never()).notify(any());
+    }
+
+    @Test
+    void save_notifiesTheLinkedUserByEmailWhenAppointmentIsCreated() {
+
+        LocalDate date = LocalDate.now().plusDays(30);
+        LocalDateTime startAt = date.atTime(10, 0);
+
+        Person clientPerson = new Person();
+        clientPerson.setName("Maria Cliente");
+
+        Client client = new Client();
+        client.setId(CLIENT_ID);
+        client.setUserId("user-1");
+        client.setPerson(clientPerson);
+
+        AppointmentDTO dto = buildValidDto(startAt, client);
+
+        User user = new User();
+        user.setId("user-1");
+        user.setEmail("maria@teste.com");
+        user.setName("Maria Cliente");
+
+        when(userRepository.findById("user-1")).thenReturn(Optional.of(user));
+        when(appointmentRepository.existsConflict(eq(COMPANY_ID), eq(PROFESSIONAL_ID), any(), any(), any(), any())).thenReturn(false);
+        when(appointmentMapper.toDTO(any())).thenReturn(new AppointmentDTO());
+
+        appointmentService.save(dto);
+
+        ArgumentCaptor<NotificationEvent> captor = ArgumentCaptor.forClass(NotificationEvent.class);
+        verify(notificationService).notify(captor.capture());
+
+        NotificationEvent event = captor.getValue();
+        assertThat(event.getType()).isEqualTo(NotificationEventType.APPOINTMENT_CREATED);
+        assertThat(event.getRecipientEmail()).isEqualTo("maria@teste.com");
+        assertThat(event.getRecipientName()).isEqualTo("Maria Cliente");
+        assertThat(event.getAppointmentStartAt()).isEqualTo(startAt);
+    }
+
+    @Test
+    void save_skipsNotificationWhenLinkedUserHasNoEmail() {
+
+        LocalDate date = LocalDate.now().plusDays(30);
+        LocalDateTime startAt = date.atTime(10, 0);
+
+        Client client = new Client();
+        client.setId(CLIENT_ID);
+        client.setUserId("user-1");
+
+        AppointmentDTO dto = buildValidDto(startAt, client);
+
+        User userWithoutEmail = new User();
+        userWithoutEmail.setId("user-1");
+
+        when(userRepository.findById("user-1")).thenReturn(Optional.of(userWithoutEmail));
+        when(appointmentRepository.existsConflict(eq(COMPANY_ID), eq(PROFESSIONAL_ID), any(), any(), any(), any())).thenReturn(false);
+        when(appointmentMapper.toDTO(any())).thenReturn(new AppointmentDTO());
+
+        appointmentService.save(dto);
+
+        verify(notificationService, never()).notify(any());
     }
 
     @Test
@@ -234,6 +319,51 @@ class AppointmentServiceTest {
         assertThatThrownBy(() -> appointmentService.update(APPOINTMENT_ID, dto))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("ocupado");
+    }
+
+    @Test
+    void update_notifiesRescheduleWhenStartAtChanges() {
+
+        LocalDate date = LocalDate.now().plusDays(30);
+        LocalDateTime newStartAt = date.atTime(10, 0);
+        LocalDateTime previousStartAt = date.atTime(9, 0);
+
+        Person clientPerson = new Person();
+        clientPerson.setName("Maria Cliente");
+
+        Client client = new Client();
+        client.setId(CLIENT_ID);
+        client.setUserId("user-1");
+        client.setPerson(clientPerson);
+
+        AppointmentDTO dto = buildValidDto(newStartAt, client);
+        dto.setStatus(AppointmentStatus.SCHEDULED);
+
+        Appointment existing = new Appointment();
+        existing.setId(APPOINTMENT_ID);
+        existing.setCompanyId(COMPANY_ID);
+        existing.setStatus(AppointmentStatus.SCHEDULED);
+        existing.setStartAt(previousStartAt);
+
+        User user = new User();
+        user.setId("user-1");
+        user.setEmail("maria@teste.com");
+        user.setName("Maria Cliente");
+
+        when(appointmentRepository.findById(APPOINTMENT_ID)).thenReturn(Optional.of(existing));
+        when(appointmentRepository.existsConflict(eq(COMPANY_ID), eq(PROFESSIONAL_ID), any(), any(), any(), eq(APPOINTMENT_ID))).thenReturn(false);
+        when(userRepository.findById("user-1")).thenReturn(Optional.of(user));
+        when(appointmentMapper.toDTO(any())).thenReturn(new AppointmentDTO());
+
+        appointmentService.update(APPOINTMENT_ID, dto);
+
+        ArgumentCaptor<NotificationEvent> captor = ArgumentCaptor.forClass(NotificationEvent.class);
+        verify(notificationService).notify(captor.capture());
+
+        NotificationEvent event = captor.getValue();
+        assertThat(event.getType()).isEqualTo(NotificationEventType.APPOINTMENT_RESCHEDULED);
+        assertThat(event.getPreviousStartAt()).isEqualTo(previousStartAt);
+        assertThat(event.getAppointmentStartAt()).isEqualTo(newStartAt);
     }
 
     @Test
