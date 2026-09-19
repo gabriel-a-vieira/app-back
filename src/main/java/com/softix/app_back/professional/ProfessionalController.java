@@ -50,8 +50,7 @@ public class ProfessionalController {
     @PostMapping
     public ResponseEntity<ProfessionalResponse> save(@Valid @RequestBody ProfessionalDTO dto) {
 
-        Professional professional = professionalService.save(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ProfessionalResponse.fromEntity(professional));
+        return ResponseEntity.status(HttpStatus.CREATED).body(professionalService.save(dto));
 
     }
 
@@ -60,8 +59,7 @@ public class ProfessionalController {
     public ResponseEntity<ProfessionalResponse> update(@PathVariable String id,
                                                        @Valid @RequestBody ProfessionalDTO dto) {
 
-        Professional professional = professionalService.update(id, dto);
-        return ResponseEntity.ok(ProfessionalResponse.fromEntity(professional));
+        return ResponseEntity.ok(professionalService.update(id, dto));
 
     }
 

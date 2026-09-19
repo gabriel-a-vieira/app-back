@@ -24,6 +24,7 @@ public class ProfessionalDTO {
     private AddressDTO address;
     private PaymentMethod prefferedPaymentMethod;
     private String additionalNotes;
+    private String userId;
 
 
     public ProfessionalDTO() {}

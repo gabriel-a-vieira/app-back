@@ -10,5 +10,7 @@ import jakarta.validation.constraints.NotNull;
 public record UpdateUserRequest(@NotBlank String name,
                                 @NotBlank @Email String email,
                                 @NotNull UserRole role,
-                                String password) {
+                                String password,
+                                String clientId, String professionalId,
+                                Boolean autoCreateLinkedRecord) {
 }

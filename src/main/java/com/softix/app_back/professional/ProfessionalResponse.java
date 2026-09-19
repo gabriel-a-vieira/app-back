@@ -2,6 +2,7 @@ package com.softix.app_back.professional;
 
 import com.softix.app_back.address.Address;
 import com.softix.app_back.person.Person;
+import com.softix.app_back.user.User;
 
 import java.util.Date;
 
@@ -21,10 +22,17 @@ public record ProfessionalResponse(
         String neighborhood,
         String cityId,
         String city,
-        String state
+        String state,
+        String userId,
+        String userName,
+        String userEmail
 ) {
 
     public static ProfessionalResponse fromEntity(Professional professional) {
+        return fromEntity(professional, null);
+    }
+
+    public static ProfessionalResponse fromEntity(Professional professional, User linkedUser) {
 
         Person person = professional.getPerson();
         Address address = person != null ? person.getAddress() : null;
@@ -60,7 +68,10 @@ public record ProfessionalResponse(
                 address != null ? address.getNeighborhood() : null,
                 cityId,
                 cityName,
-                stateAbbreviation
+                stateAbbreviation,
+                professional.getUserId(),
+                linkedUser != null ? linkedUser.getName() : null,
+                linkedUser != null ? linkedUser.getEmail() : null
         );
 
     }

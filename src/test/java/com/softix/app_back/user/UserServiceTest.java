@@ -1,5 +1,8 @@
 package com.softix.app_back.user;
 
+import com.softix.app_back.client.ClientRepository;
+import com.softix.app_back.person.PersonService;
+import com.softix.app_back.professional.ProfessionalRepository;
 import com.softix.app_back.shared.exception.BusinessException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +39,15 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private ClientRepository clientRepository;
+
+    @Mock
+    private ProfessionalRepository professionalRepository;
+
+    @Mock
+    private PersonService personService;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
@@ -55,7 +67,7 @@ class UserServiceTest {
 
     @Test
     void createUser_throwsBadRequest_whenEmailAlreadyExists() {
-        CreateUserRequest request = new CreateUserRequest("Ana", "ana@softix.com", "123456", UserRole.PROFESSIONAL, null);
+        CreateUserRequest request = new CreateUserRequest("Ana", "ana@softix.com", "123456", UserRole.PROFESSIONAL, null, null, null, null);
 
         when(userRepository.existsByEmailIgnoreCase("ana@softix.com")).thenReturn(true);
 
@@ -69,7 +81,7 @@ class UserServiceTest {
 
     @Test
     void createUser_encodesPasswordAndSavesTheNewUser() {
-        CreateUserRequest request = new CreateUserRequest("Ana", "ana@softix.com", "123456", UserRole.PROFESSIONAL, null);
+        CreateUserRequest request = new CreateUserRequest("Ana", "ana@softix.com", "123456", UserRole.PROFESSIONAL, null, null, null, null);
 
         when(userRepository.existsByEmailIgnoreCase("ana@softix.com")).thenReturn(false);
         when(passwordEncoder.encode("123456")).thenReturn("hashed-password");
@@ -109,7 +121,7 @@ class UserServiceTest {
 
     @Test
     void update_throwsBadRequest_whenNewEmailBelongsToAnotherUser() {
-        UpdateUserRequest request = new UpdateUserRequest("Ana Souza", "outra@softix.com", UserRole.PROFESSIONAL, null);
+        UpdateUserRequest request = new UpdateUserRequest("Ana Souza", "outra@softix.com", UserRole.PROFESSIONAL, null, null, null, null);
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(buildUser()));
         when(userRepository.existsByEmailIgnoreCase("outra@softix.com")).thenReturn(true);
@@ -124,7 +136,7 @@ class UserServiceTest {
 
     @Test
     void update_keepsThePreviousPassword_whenNoneIsProvided() {
-        UpdateUserRequest request = new UpdateUserRequest("Ana Souza", "ana@softix.com", UserRole.COMPANY_ADMIN, "  ");
+        UpdateUserRequest request = new UpdateUserRequest("Ana Souza", "ana@softix.com", UserRole.COMPANY_ADMIN, "  ", null, null, null);
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(buildUser()));
 
@@ -141,7 +153,7 @@ class UserServiceTest {
 
     @Test
     void update_encodesAndReplacesThePassword_whenOneIsProvided() {
-        UpdateUserRequest request = new UpdateUserRequest("Ana Souza", "ana@softix.com", UserRole.PROFESSIONAL, "novaSenha123");
+        UpdateUserRequest request = new UpdateUserRequest("Ana Souza", "ana@softix.com", UserRole.PROFESSIONAL, "novaSenha123", null, null, null);
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(buildUser()));
         when(passwordEncoder.encode("novaSenha123")).thenReturn("hashed-new-password");

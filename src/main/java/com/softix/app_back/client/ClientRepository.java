@@ -66,4 +66,6 @@ public interface ClientRepository extends JpaRepository<Client, String> {
 
     Optional<Client> findByCompanyIdAndUserId(String companyId, String userId);
 
+    boolean existsByCompanyIdAndUserIdAndIdNot(String companyId, String userId, String id);
+
 }

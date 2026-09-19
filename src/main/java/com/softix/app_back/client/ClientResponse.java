@@ -3,6 +3,7 @@ package com.softix.app_back.client;
 import com.softix.app_back.address.Address;
 import com.softix.app_back.payment.PaymentMethod;
 import com.softix.app_back.person.Person;
+import com.softix.app_back.user.User;
 
 import java.util.Date;
 
@@ -25,10 +26,17 @@ public record ClientResponse(
         String neighborhood,
         String cityId,
         String city,
-        String state
+        String state,
+        String userId,
+        String userName,
+        String userEmail
 ) {
 
     public static ClientResponse fromEntity(Client client) {
+        return fromEntity(client, null);
+    }
+
+    public static ClientResponse fromEntity(Client client, User linkedUser) {
         Person person = client.getPerson();
         Address address = person != null ? person.getAddress() : null;
 
@@ -64,7 +72,10 @@ public record ClientResponse(
                 address != null ? address.getNeighborhood() : null,
                 cityId,
                 cityName,
-                stateAbbreviation
+                stateAbbreviation,
+                client.getUserId(),
+                linkedUser != null ? linkedUser.getName() : null,
+                linkedUser != null ? linkedUser.getEmail() : null
         );
     }
 }

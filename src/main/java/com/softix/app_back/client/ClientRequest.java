@@ -20,6 +20,7 @@ public record ClientRequest(
         String additionalNotes,
         ClientStatus status,
         String companyId,
-        AddressDTO address
+        AddressDTO address,
+        String userId
 ) {
 }
