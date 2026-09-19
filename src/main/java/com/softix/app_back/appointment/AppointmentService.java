@@ -9,16 +9,23 @@ import com.softix.app_back.client.Client;
 import com.softix.app_back.company.CompanyRepository;
 import com.softix.app_back.client.ClientRepository;
 import com.softix.app_back.client.ClientService;
+import com.softix.app_back.notification.NotificationEvent;
+import com.softix.app_back.notification.NotificationEventType;
+import com.softix.app_back.notification.NotificationService;
 import com.softix.app_back.professional.Professional;
 import com.softix.app_back.professional.ProfessionalRepository;
 import com.softix.app_back.service_offering.ServiceOffering;
 import com.softix.app_back.service_offering.ServiceOfferingRepository;
+import com.softix.app_back.user.User;
+import com.softix.app_back.user.UserRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import com.softix.app_back.shared.exception.BusinessException;
 import utils.security.SecurityUtils;
 
@@ -58,6 +65,10 @@ public class AppointmentService {
     private final ClientService clientService;
 
     private final AppointmentMapper appointmentMapper;
+
+    private final UserRepository userRepository;
+
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public Page<AppointmentDTO> findAll(String search, String status, String clientId, String professionalId, LocalDate dateFrom, LocalDate dateTo, String companyId, Pageable pageable) {
@@ -115,6 +126,8 @@ public class AppointmentService {
 
         saveServiceItems(appointment, services, companyId);
 
+        notifyAppointment(appointment, services, NotificationEventType.APPOINTMENT_CREATED, null);
+
         return appointmentMapper.toDTO(appointment);
 
     }
@@ -130,6 +143,9 @@ public class AppointmentService {
         Client client = findClient(dto.getClientId(), companyId);
         Professional professional = findProfessional(dto.getProfessionalId(), companyId);
         List<ServiceOffering> services = findServices(dto.getServiceIds(), companyId);
+
+        LocalDateTime previousStartAt = appointment.getStartAt();
+        AppointmentStatus previousStatus = appointment.getStatus();
 
         LocalDateTime startAt = dto.getStartAt();
         LocalDateTime endAt = calculateEndAt(startAt, services);
@@ -155,6 +171,12 @@ public class AppointmentService {
 
         saveServiceItems(appointment, services, companyId);
 
+        if (newStatus == AppointmentStatus.CANCELLED && previousStatus != AppointmentStatus.CANCELLED) {
+            notifyAppointment(appointment, services, NotificationEventType.APPOINTMENT_CANCELLED, null);
+        } else if (!startAt.equals(previousStartAt)) {
+            notifyAppointment(appointment, services, NotificationEventType.APPOINTMENT_RESCHEDULED, previousStartAt);
+        }
+
         return appointmentMapper.toDTO(appointment);
 
     }
@@ -175,10 +197,16 @@ public class AppointmentService {
             appointments = appointmentRepository.findByIdInAndCompanyId(ids, companyId);
         }
 
+        List<Appointment> toNotify = new ArrayList<>();
+
         for (Appointment appointment : appointments) {
 
             if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
                 throw new BusinessException(HttpStatus.BAD_REQUEST, "Agendamento concluido nao pode ser cancelado");
+            }
+
+            if (appointment.getStatus() != AppointmentStatus.CANCELLED) {
+                toNotify.add(appointment);
             }
 
             appointment.setStatus(AppointmentStatus.CANCELLED);
@@ -186,6 +214,10 @@ public class AppointmentService {
         }
 
         appointmentRepository.saveAll(appointments);
+
+        for (Appointment appointment : toNotify) {
+            notifyAppointment(appointment, null, NotificationEventType.APPOINTMENT_CANCELLED, null);
+        }
 
     }
 
@@ -428,6 +460,8 @@ public class AppointmentService {
 
         saveServiceItems(appointment, services, request.getCompanyId());
 
+        notifyAppointment(appointment, services, NotificationEventType.APPOINTMENT_CREATED, null);
+
         return appointmentMapper.toCustomerDTO(appointment);
 
     }
@@ -467,6 +501,78 @@ public class AppointmentService {
         appointment.setStatus(AppointmentStatus.CANCELLED);
 
         appointmentRepository.save(appointment);
+
+        notifyAppointment(appointment, null, NotificationEventType.APPOINTMENT_CANCELLED, null);
+
+    }
+
+    /**
+     * Builds the notification payload and hands it to NotificationService,
+     * deferred to run only after this transaction actually commits -- a call
+     * fired mid-transaction (NotificationService.notify is async) could
+     * otherwise notify for an appointment change that later gets rolled
+     * back. Silently skips when the client has no linked User or that user
+     * has no email -- notification is best-effort, not a requirement to
+     * complete the booking/cancel/reschedule.
+     */
+    private void notifyAppointment(Appointment appointment, List<ServiceOffering> services, NotificationEventType type, LocalDateTime previousStartAt) {
+
+        Client client = appointment.getClient();
+
+        if (client == null || client.getUserId() == null || client.getUserId().isBlank()) {
+            return;
+        }
+
+        User user = userRepository.findById(client.getUserId()).orElse(null);
+
+        if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
+            return;
+        }
+
+        String recipientName = client.getPerson() != null && StringUtils.isNotBlank(client.getPerson().getName())
+                ? client.getPerson().getName()
+                : user.getName();
+
+        String professionalName = appointment.getProfessional() != null && appointment.getProfessional().getPerson() != null
+                ? appointment.getProfessional().getPerson().getName()
+                : "";
+
+        String serviceNames = services == null ? "" : services.stream().map(ServiceOffering::getName).collect(Collectors.joining(", "));
+
+        NotificationEvent event = NotificationEvent.builder()
+                .type(type)
+                .recipientEmail(user.getEmail())
+                .recipientName(recipientName)
+                .companyName(resolveCompanyName(appointment.getCompanyId()))
+                .professionalName(professionalName)
+                .serviceNames(serviceNames)
+                .appointmentStartAt(appointment.getStartAt())
+                .previousStartAt(previousStartAt)
+                .build();
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    notificationService.notify(event);
+                }
+            });
+
+        } else {
+            notificationService.notify(event);
+        }
+
+    }
+
+    private String resolveCompanyName(String companyId) {
+
+        return companyRepository.findById(companyId)
+                .map(company -> {
+                    String name = company.getTradeName();
+                    return StringUtils.isNotBlank(name) ? name : company.getLegalName();
+                })
+                .orElse("");
 
     }
 
