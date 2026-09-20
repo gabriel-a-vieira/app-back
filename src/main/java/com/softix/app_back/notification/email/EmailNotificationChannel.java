@@ -1,13 +1,13 @@
 package com.softix.app_back.notification.email;
 
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
-import com.resend.services.emails.model.CreateEmailResponse;
 import com.softix.app_back.notification.NotificationChannel;
 import com.softix.app_back.notification.NotificationEvent;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 import java.time.format.DateTimeFormatter;
@@ -18,13 +18,13 @@ public class EmailNotificationChannel implements NotificationChannel {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy 'as' HH:mm");
 
-    private final Resend resend;
+    private final JavaMailSender mailSender;
 
     private final String fromEmail;
 
-    public EmailNotificationChannel(@Value("${resend.api-key}") String apiKey,
-                                    @Value("${resend.from-email}") String fromEmail) {
-        this.resend = new Resend(apiKey);
+    public EmailNotificationChannel(JavaMailSender mailSender,
+                                    @Value("${spring.mail.username}") String fromEmail) {
+        this.mailSender = mailSender;
         this.fromEmail = fromEmail;
     }
 
@@ -36,20 +36,20 @@ public class EmailNotificationChannel implements NotificationChannel {
             return;
         }
 
-        CreateEmailOptions options = CreateEmailOptions.builder()
-                .from(fromEmail)
-                .to(event.getRecipientEmail())
-                .subject(subjectFor(event))
-                .html(bodyFor(event))
-                .build();
-
         try {
 
-            CreateEmailResponse response = resend.emails().send(options);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(event.getRecipientEmail());
+            helper.setSubject(subjectFor(event));
+            helper.setText(bodyFor(event), true);
 
-            log.info("E-mail de notificacao {} enviado para {} (id {})", event.getType(), event.getRecipientEmail(), response.getId());
+            mailSender.send(message);
 
-        } catch (ResendException e) {
+            log.info("E-mail de notificacao {} enviado para {}", event.getType(), event.getRecipientEmail());
+
+        } catch (MessagingException | org.springframework.mail.MailException e) {
             log.error("Falha ao enviar e-mail de notificacao {} para {}", event.getType(), event.getRecipientEmail(), e);
         }
 
