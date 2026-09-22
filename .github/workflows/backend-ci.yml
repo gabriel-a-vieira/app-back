@@ -1,0 +1,64 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Rodar testes
+        run: ./mvnw test
+
+  build:
+    name: Build (.jar)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Gerar .jar
+        run: ./mvnw clean package -DskipTests
+
+      - name: Salvar .jar como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-back-jar
+          path: target/*.jar
+          retention-days: 14
+
+  deploy-staging:
+    name: Deploy em Staging (manual)
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    # Environment "staging" configurado em Settings > Environments com "Required reviewers":
+    # o job fica esperando aprovação manual aqui antes de rodar, mesmo com o push já feito.
+    environment: staging
+    steps:
+      - name: Disparar deploy no Render
+        run: |
+          curl -f -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json"
