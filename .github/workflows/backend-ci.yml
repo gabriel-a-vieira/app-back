@@ -11,6 +11,21 @@ jobs:
   test:
     name: Testes
     runs-on: ubuntu-latest
+    # Postgres descartável só para o AppBackApplicationTests (sobe o contexto inteiro + Flyway).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: schedule_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -23,6 +38,10 @@ jobs:
 
       - name: Rodar testes
         run: ./mvnw test
+        env:
+          # Valores fictícios: o contexto só precisa resolver os placeholders, nenhum login real acontece nos testes.
+          GOOGLE_OAUTH_CLIENT_ID: ci-dummy-client-id
+          JWT_SECRET: ci-dummy-jwt-secret
 
   build:
     name: Build (.jar)
