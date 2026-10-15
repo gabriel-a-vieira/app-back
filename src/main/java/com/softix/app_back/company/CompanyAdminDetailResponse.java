@@ -17,6 +17,7 @@ public record CompanyAdminDetailResponse(
         String street,
         String number,
         String district,
+        String cityId,
         String city,
         String state,
         String complement,
@@ -35,6 +36,7 @@ public record CompanyAdminDetailResponse(
         String street = "";
         String number = "";
         String district = "";
+        String cityId = "";
         String city = "";
         String state = "";
         String complement = "";
@@ -49,6 +51,7 @@ public record CompanyAdminDetailResponse(
 
             if (company.getAddress().getCity() != null) {
 
+                cityId = value(company.getAddress().getCity().getId());
                 city = value(company.getAddress().getCity().getName());
 
                 if (company.getAddress().getCity().getState() != null) {
@@ -73,6 +76,7 @@ public record CompanyAdminDetailResponse(
                 street,
                 number,
                 district,
+                cityId,
                 city,
                 state,
                 complement,

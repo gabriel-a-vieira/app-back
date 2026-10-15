@@ -198,7 +198,7 @@ public class CompanyService {
 
     private Address buildAddress(CompanySaveRequest request) {
 
-        boolean hasAddress = StringUtils.isNotBlank(request.getZipCode()) || StringUtils.isNotBlank(request.getStreet()) || StringUtils.isNotBlank(request.getCity());
+        boolean hasAddress = StringUtils.isNotBlank(request.getZipCode()) || StringUtils.isNotBlank(request.getStreet()) || StringUtils.isNotBlank(request.getCityId()) || StringUtils.isNotBlank(request.getCity());
 
         if (!hasAddress) {
             return null;
@@ -212,7 +212,13 @@ public class CompanyService {
         address.setPostalCode(StringUtils.getDigits(request.getZipCode()));
         address.setNeighborhood(StringUtils.trimToNull(request.getDistrict()));
 
-        City city = cityRepository.findByNameAndStateAbbreviation(request.getCity(), request.getState());
+        City city;
+
+        if (StringUtils.isNotBlank(request.getCityId())) {
+            city = cityRepository.findById(request.getCityId()).orElse(null);
+        } else {
+            city = cityRepository.findByNameAndStateAbbreviation(request.getCity(), request.getState());
+        }
 
         if (city == null) {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Cidade nao encontrada");
