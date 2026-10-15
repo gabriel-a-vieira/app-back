@@ -24,6 +24,7 @@ public class CompanySaveRequest {
     private String street;
     private String number;
     private String district;
+    private String cityId;
     private String city;
     private String state;
     private String complement;
