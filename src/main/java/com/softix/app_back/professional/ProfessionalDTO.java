@@ -12,6 +12,7 @@ public class ProfessionalDTO {
 
     private String id;
     private String personId;
+    private String companyId;
     private ProfessionalStatus status;
 
     // Person

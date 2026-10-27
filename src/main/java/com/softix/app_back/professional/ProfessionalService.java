@@ -98,7 +98,15 @@ public class ProfessionalService {
     @Transactional
     public ProfessionalResponse save(ProfessionalDTO dto) {
 
+        String companyId = SecurityUtils.resolveCompanyId(dto.getCompanyId());
+
+        if (companyId == null || companyId.isBlank()) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Empresa e obrigatoria");
+        }
+
         Professional professional = new Professional();
+
+        professional.setCompanyId(companyId);
 
         if (dto.getPersonId() != null) {
 
@@ -118,7 +126,7 @@ public class ProfessionalService {
         }
 
         professional.setStatus(dto.getStatus() != null ? dto.getStatus() : ACTIVE);
-        professional.setUserId(resolveUserId(dto.getUserId(), SecurityUtils.resolveCompanyId(null), null));
+        professional.setUserId(resolveUserId(dto.getUserId(), companyId, null));
 
         professionalRepository.save(professional);
 
