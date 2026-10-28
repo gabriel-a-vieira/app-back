@@ -9,6 +9,7 @@ import java.util.Date;
 public record ProfessionalResponse(
         String id,
         String personId,
+        String companyId,
         String name,
         String cpfCnpj,
         String phone,
@@ -55,6 +56,7 @@ public record ProfessionalResponse(
         return new ProfessionalResponse(
                 professional.getId(),
                 professional.getPersonId(),
+                professional.getCompanyId(),
                 person != null ? person.getName() : null,
                 person != null ? person.getCpfCnpj() : null,
                 person != null ? person.getPhone() : null,

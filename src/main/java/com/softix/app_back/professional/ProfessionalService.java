@@ -41,7 +41,7 @@ public class ProfessionalService {
 
     public Page<ProfessionalResponse> findAll(String search, String name, String cpfCnpj,
                                               String phone, String city, String state,
-                                              String status, Pageable pageable) {
+                                              String status, String companyId, Pageable pageable) {
 
         ProfessionalStatus professionalStatus = null;
 
@@ -49,7 +49,9 @@ public class ProfessionalService {
             professionalStatus = ProfessionalStatus.valueOf(status.toUpperCase());
         }
 
-        return professionalRepository.findAdvanced(search, name, cpfCnpj, phone, city, state, professionalStatus, pageable)
+        String resolvedCompanyId = SecurityUtils.resolveCompanyId(companyId);
+
+        return professionalRepository.findAdvanced(resolvedCompanyId, search, name, cpfCnpj, phone, city, state, professionalStatus, pageable)
                 .map(this::toResponse);
 
     }
