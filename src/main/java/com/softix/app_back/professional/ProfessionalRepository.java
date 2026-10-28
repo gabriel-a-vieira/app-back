@@ -31,7 +31,8 @@ public interface ProfessionalRepository extends JpaRepository<Professional, Stri
     LEFT JOIN person.address.city city
     LEFT JOIN city.state state
     WHERE
-        (:status IS NULL OR p.status = :status)
+        (:companyId IS NULL OR :companyId = '' OR p.companyId = :companyId)
+        AND (:status IS NULL OR p.status = :status)
         AND (
             :search IS NULL OR :search = ''
             OR LOWER(person.name) LIKE LOWER(CONCAT('%', :search, '%'))
@@ -47,6 +48,7 @@ public interface ProfessionalRepository extends JpaRepository<Professional, Stri
         AND (:state IS NULL OR :state = '' OR LOWER(state.abbreviation) = LOWER(:state))
     """)
     Page<Professional> findAdvanced(
+            @Param("companyId") String companyId,
             @Param("search") String search,
             @Param("name") String name,
             @Param("cpfCnpj") String cpfCnpj,

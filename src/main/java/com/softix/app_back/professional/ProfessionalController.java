@@ -31,12 +31,13 @@ public class ProfessionalController {
                                               @RequestParam(required = false) String city,
                                               @RequestParam(required = false) String state,
                                               @RequestParam(required = false) String status,
+                                              @RequestParam(required = false) String companyId,
                                               @RequestParam(defaultValue = "0") int page,
                                               @RequestParam(defaultValue = "10") int size) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        return professionalService.findAll(search, name, cpfCnpj, phone, city, state, status, pageable);
+        return professionalService.findAll(search, name, cpfCnpj, phone, city, state, status, companyId, pageable);
 
     }
 

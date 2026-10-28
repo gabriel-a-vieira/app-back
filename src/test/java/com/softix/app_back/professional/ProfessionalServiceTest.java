@@ -14,6 +14,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -22,6 +26,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -119,6 +125,47 @@ class ProfessionalServiceTest {
         ArgumentCaptor<Professional> captor = ArgumentCaptor.forClass(Professional.class);
         verify(professionalRepository).save(captor.capture());
         assertThat(captor.getValue().getCompanyId()).isEqualTo("own-company");
+    }
+
+    @Test
+    void findAll_masterAdminFiltersByRequestedCompany() {
+
+        authenticateAs("MASTER_ADMIN", null);
+        Pageable pageable = PageRequest.of(0, 10);
+        when(professionalRepository.findAdvanced(eq("company-1"), any(), any(), any(), any(), any(), any(), isNull(), eq(pageable)))
+                .thenReturn(Page.empty());
+
+        professionalService.findAll(null, null, null, null, null, null, null, "company-1", pageable);
+
+        verify(professionalRepository).findAdvanced(eq("company-1"), any(), any(), any(), any(), any(), any(), isNull(), eq(pageable));
+    }
+
+    @Test
+    void findAll_companyAdminIgnoresRequestedCompany() {
+
+        authenticateAs("COMPANY_ADMIN", "own-company");
+        Pageable pageable = PageRequest.of(0, 10);
+        when(professionalRepository.findAdvanced(eq("own-company"), any(), any(), any(), any(), any(), any(), any(), eq(pageable)))
+                .thenReturn(Page.empty());
+
+        professionalService.findAll(null, null, null, null, null, null, "ACTIVE", "other-company", pageable);
+
+        verify(professionalRepository).findAdvanced(eq("own-company"), any(), any(), any(), any(), any(), any(), eq(ProfessionalStatus.ACTIVE), eq(pageable));
+    }
+
+    @Test
+    void findAll_exposesCompanyIdInResponse() {
+
+        authenticateAs("MASTER_ADMIN", null);
+        Pageable pageable = PageRequest.of(0, 10);
+        Professional professional = new Professional();
+        professional.setCompanyId("company-1");
+        when(professionalRepository.findAdvanced(any(), any(), any(), any(), any(), any(), any(), any(), eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(professional)));
+
+        Page<ProfessionalResponse> result = professionalService.findAll(null, null, null, null, null, null, null, "company-1", pageable);
+
+        assertThat(result.getContent()).extracting(ProfessionalResponse::companyId).containsExactly("company-1");
     }
 
 }
