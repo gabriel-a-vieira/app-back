@@ -20,5 +20,16 @@ COPY --from=build /app/target/*.jar app.jar
 # O Render injeta a porta via variável PORT (lida em application.properties)
 EXPOSE 8081
 
-# Limita a heap para caber nos 512MB do plano gratuito do Render
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]
+# Ajustado para o plano gratuito do Render (512MB, CPU fracionada):
+# - MaxRAMPercentage: limita a heap para caber nos 512MB
+# - UseSerialGC: GC mais leve em memória e CPU para 1 core
+# - TieredStopAtLevel=1: só o compilador C1, sobe bem mais rápido com pouca CPU
+# - Xss512k: pilha menor por thread, economiza memória
+# - ExitOnOutOfMemoryError: se estourar memória, o processo morre e o Render reinicia limpo
+ENTRYPOINT ["java", \
+    "-XX:MaxRAMPercentage=75", \
+    "-XX:+UseSerialGC", \
+    "-XX:TieredStopAtLevel=1", \
+    "-Xss512k", \
+    "-XX:+ExitOnOutOfMemoryError", \
+    "-jar", "app.jar"]
