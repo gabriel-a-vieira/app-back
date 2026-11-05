@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.HEAD, "/health").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth/password-reset/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/company/companies/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/state", "/state/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/city", "/city/**").permitAll()
