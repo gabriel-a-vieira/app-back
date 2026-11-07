@@ -2,31 +2,23 @@ package com.softix.app_back.notification.email;
 
 import com.softix.app_back.notification.NotificationChannel;
 import com.softix.app_back.notification.NotificationEvent;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import com.softix.app_back.shared.email.EmailMessage;
+import com.softix.app_back.shared.email.EmailSendException;
+import com.softix.app_back.shared.email.EmailSender;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class EmailNotificationChannel implements NotificationChannel {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy 'as' HH:mm");
 
-    private final JavaMailSender mailSender;
-
-    private final String fromEmail;
-
-    public EmailNotificationChannel(JavaMailSender mailSender,
-                                    @Value("${spring.mail.username}") String fromEmail) {
-        this.mailSender = mailSender;
-        this.fromEmail = fromEmail;
-    }
+    private final EmailSender emailSender;
 
     @Override
     public void send(NotificationEvent event) {
@@ -38,18 +30,11 @@ public class EmailNotificationChannel implements NotificationChannel {
 
         try {
 
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(event.getRecipientEmail());
-            helper.setSubject(subjectFor(event));
-            helper.setText(bodyFor(event), true);
-
-            mailSender.send(message);
+            emailSender.send(new EmailMessage(event.getRecipientEmail(), event.getRecipientName(), subjectFor(event), bodyFor(event)));
 
             log.info("E-mail de notificacao {} enviado para {}", event.getType(), event.getRecipientEmail());
 
-        } catch (MessagingException | org.springframework.mail.MailException e) {
+        } catch (EmailSendException e) {
             log.error("Falha ao enviar e-mail de notificacao {} para {}", event.getType(), event.getRecipientEmail(), e);
         }
 
