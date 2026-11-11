@@ -4,8 +4,13 @@ import lombok.RequiredArgsConstructor;
 import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentDTO;
 import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentRequest;
 import com.softix.app_back.availability.Availability;
+import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentCalendarDTO;
 import com.softix.app_back.availability.AvailabilityRepository;
+import com.softix.app_back.calendar.AppointmentCalendarEvents;
+import com.softix.app_back.calendar.CalendarEvent;
+import com.softix.app_back.calendar.CalendarInviteBuilder;
 import com.softix.app_back.client.Client;
+import com.softix.app_back.company.Company;
 import com.softix.app_back.company.CompanyRepository;
 import com.softix.app_back.client.ClientRepository;
 import com.softix.app_back.client.ClientService;
@@ -69,6 +74,8 @@ public class AppointmentService {
     private final UserRepository userRepository;
 
     private final NotificationService notificationService;
+
+    private final CalendarInviteBuilder calendarInviteBuilder;
 
     @Transactional(readOnly = true)
     public Page<AppointmentDTO> findAll(String search, String status, String clientId, String professionalId, LocalDate dateFrom, LocalDate dateTo, String companyId, Pageable pageable) {
@@ -507,6 +514,48 @@ public class AppointmentService {
     }
 
     /**
+     * The logged-in client's own appointment as calendar data for the app's
+     * "Adicionar ao calendario" button: a Google Calendar link and an .ics file
+     * whose UID/SEQUENCE match the e-mailed invites, so a later reschedule or
+     * cancel e-mail updates the same entry.
+     */
+    @Transactional(readOnly = true)
+    public CustomerAppointmentCalendarDTO findMineCalendar(String id) {
+
+        String userId = SecurityUtils.userId();
+
+        Appointment appointment = appointmentRepository.findMineById(id, userId).orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Agendamento nao encontrado"));
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Agendamento cancelado nao pode ser adicionado ao calendario");
+        }
+
+        Company company = companyRepository.findById(appointment.getCompanyId()).orElse(null);
+
+        String serviceNames = appointmentServiceItemRepository.findByAppointmentIdOrderByExecutionOrderAsc(appointment.getId()).stream()
+                .map(item -> item.getServiceOffering() != null ? item.getServiceOffering().getName() : null)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.joining(", "));
+
+        CalendarEvent event = AppointmentCalendarEvents.of(
+                appointment.getId(),
+                appointment.getVersion(),
+                appointment.getStartAt(),
+                appointment.getEndAt(),
+                companyName(company),
+                professionalName(appointment),
+                serviceNames,
+                AppointmentCalendarEvents.formatAddress(company != null ? company.getAddress() : null),
+                false);
+
+        return new CustomerAppointmentCalendarDTO(
+                calendarInviteBuilder.buildGoogleCalendarUrl(event),
+                calendarInviteBuilder.buildFile(event),
+                "agendamento.ics");
+
+    }
+
+    /**
      * Builds the notification payload and hands it to NotificationService,
      * deferred to run only after this transaction actually commits -- a call
      * fired mid-transaction (NotificationService.notify is async) could
@@ -533,20 +582,21 @@ public class AppointmentService {
                 ? client.getPerson().getName()
                 : user.getName();
 
-        String professionalName = appointment.getProfessional() != null && appointment.getProfessional().getPerson() != null
-                ? appointment.getProfessional().getPerson().getName()
-                : "";
-
         String serviceNames = services == null ? "" : services.stream().map(ServiceOffering::getName).collect(Collectors.joining(", "));
+
+        Company company = companyRepository.findById(appointment.getCompanyId()).orElse(null);
 
         NotificationEvent event = NotificationEvent.builder()
                 .type(type)
                 .recipientEmail(user.getEmail())
                 .recipientName(recipientName)
-                .companyName(resolveCompanyName(appointment.getCompanyId()))
-                .professionalName(professionalName)
+                .appointmentId(appointment.getId())
+                .companyName(companyName(company))
+                .companyAddress(AppointmentCalendarEvents.formatAddress(company != null ? company.getAddress() : null))
+                .professionalName(professionalName(appointment))
                 .serviceNames(serviceNames)
                 .appointmentStartAt(appointment.getStartAt())
+                .appointmentEndAt(appointment.getEndAt())
                 .previousStartAt(previousStartAt)
                 .build();
 
@@ -555,24 +605,33 @@ public class AppointmentService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    notificationService.notify(event);
+                    // @Version is only bumped at flush, so it's read here, after
+                    // commit, to get the value the calendar invite SEQUENCE needs
+                    notificationService.notify(event.toBuilder().appointmentVersion(appointment.getVersion()).build());
                 }
             });
 
         } else {
-            notificationService.notify(event);
+            notificationService.notify(event.toBuilder().appointmentVersion(appointment.getVersion()).build());
         }
 
     }
 
-    private String resolveCompanyName(String companyId) {
+    private String professionalName(Appointment appointment) {
 
-        return companyRepository.findById(companyId)
-                .map(company -> {
-                    String name = company.getTradeName();
-                    return StringUtils.isNotBlank(name) ? name : company.getLegalName();
-                })
-                .orElse("");
+        return appointment.getProfessional() != null && appointment.getProfessional().getPerson() != null
+                ? appointment.getProfessional().getPerson().getName()
+                : "";
+
+    }
+
+    private String companyName(Company company) {
+
+        if (company == null) {
+            return "";
+        }
+
+        return StringUtils.isNotBlank(company.getTradeName()) ? company.getTradeName() : company.getLegalName();
 
     }
 

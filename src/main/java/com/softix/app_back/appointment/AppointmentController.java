@@ -1,6 +1,7 @@
 package com.softix.app_back.appointment;
 
 import lombok.RequiredArgsConstructor;
+import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentCalendarDTO;
 import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentDTO;
 import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentRequest;
 import com.softix.app_back.permission.CrudAction;
@@ -88,6 +89,11 @@ public class AppointmentController {
         return appointmentService.findMineById(id);
     }
 
+
+    @GetMapping("/mine/{id}/calendar")
+    public CustomerAppointmentCalendarDTO findMineCalendar(@PathVariable String id) {
+        return appointmentService.findMineCalendar(id);
+    }
 
     @PatchMapping("/mine/{id}/cancel")
     @ResponseStatus(HttpStatus.NO_CONTENT)

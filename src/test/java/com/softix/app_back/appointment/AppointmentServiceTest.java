@@ -1,6 +1,9 @@
 package com.softix.app_back.appointment;
 
+import com.softix.app_back.appointment.customer_appointment.CustomerAppointmentCalendarDTO;
 import com.softix.app_back.availability.Availability;
+import com.softix.app_back.calendar.CalendarInviteBuilder;
+import com.softix.app_back.company.Company;
 import com.softix.app_back.availability.AvailabilityRepository;
 import com.softix.app_back.client.Client;
 import com.softix.app_back.client.ClientRepository;
@@ -22,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -83,6 +87,9 @@ class AppointmentServiceTest {
 
     @Mock
     private NotificationService notificationService;
+
+    @Spy
+    private CalendarInviteBuilder calendarInviteBuilder = new CalendarInviteBuilder("America/Sao_Paulo");
 
     @InjectMocks
     private AppointmentService appointmentService;
@@ -454,5 +461,78 @@ class AppointmentServiceTest {
                 PROFESSIONAL_ID, date, List.of(SERVICE_ID), COMPANY_ID, null);
 
         assertThat(slots).containsExactly("09:00", "09:15", "09:30");
+    }
+
+    private Appointment mineAppointment(AppointmentStatus status) {
+
+        Person person = new Person();
+        person.setName("Ana");
+
+        Professional professional = new Professional();
+        professional.setId(PROFESSIONAL_ID);
+        professional.setPerson(person);
+
+        Appointment appointment = new Appointment();
+        appointment.setId(APPOINTMENT_ID);
+        appointment.setCompanyId(COMPANY_ID);
+        appointment.setProfessional(professional);
+        appointment.setStartAt(LocalDateTime.of(2026, 12, 1, 10, 0));
+        appointment.setEndAt(LocalDateTime.of(2026, 12, 1, 10, 30));
+        appointment.setStatus(status);
+        appointment.setVersion(4);
+        return appointment;
+    }
+
+    @Test
+    void findMineCalendar_returnsGoogleLinkAndIcsMatchingTheEmailedInvite() {
+
+        authenticateAs("CLIENT", null);
+
+        Company company = new Company();
+        company.setTradeName("Studio X");
+
+        ServiceOffering service = new ServiceOffering();
+        service.setName("Corte");
+        AppointmentServiceItem item = new AppointmentServiceItem();
+        item.setServiceOffering(service);
+
+        when(appointmentRepository.findMineById(APPOINTMENT_ID, "user-1")).thenReturn(Optional.of(mineAppointment(AppointmentStatus.SCHEDULED)));
+        when(companyRepository.findById(COMPANY_ID)).thenReturn(Optional.of(company));
+        when(appointmentServiceItemRepository.findByAppointmentIdOrderByExecutionOrderAsc(APPOINTMENT_ID)).thenReturn(List.of(item));
+
+        CustomerAppointmentCalendarDTO calendar = appointmentService.findMineCalendar(APPOINTMENT_ID);
+
+        assertThat(calendar.fileName()).isEqualTo("agendamento.ics");
+        assertThat(calendar.googleCalendarUrl()).contains("text=Agendamento%20-%20Studio%20X").contains("dates=20261201T100000/20261201T103000");
+        assertThat(calendar.ics())
+                .contains("METHOD:PUBLISH")
+                .contains("UID:" + APPOINTMENT_ID + "@softix-schedule")
+                .contains("SEQUENCE:4")
+                .contains("DTSTART:20261201T130000Z")
+                .contains("Profissional: Ana\\nServicos: Corte");
+    }
+
+    @Test
+    void findMineCalendar_rejectsACancelledAppointment() {
+
+        authenticateAs("CLIENT", null);
+
+        when(appointmentRepository.findMineById(APPOINTMENT_ID, "user-1")).thenReturn(Optional.of(mineAppointment(AppointmentStatus.CANCELLED)));
+
+        assertThatThrownBy(() -> appointmentService.findMineCalendar(APPOINTMENT_ID))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("cancelado");
+    }
+
+    @Test
+    void findMineCalendar_returnsNotFoundForAnotherUsersAppointment() {
+
+        authenticateAs("CLIENT", null);
+
+        when(appointmentRepository.findMineById(APPOINTMENT_ID, "user-1")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> appointmentService.findMineCalendar(APPOINTMENT_ID))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("nao encontrado");
     }
 }

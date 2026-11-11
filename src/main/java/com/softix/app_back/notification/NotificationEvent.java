@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * entities directly.
  */
 @Value
-@Builder
+@Builder(toBuilder = true)
 public class NotificationEvent {
 
     NotificationEventType type;
@@ -20,15 +20,25 @@ public class NotificationEvent {
     String recipientEmail;
     String recipientName;
 
+    String appointmentId;
+
     String companyName;
+    String companyAddress;
     String professionalName;
     String serviceNames;
 
     LocalDateTime appointmentStartAt;
+    LocalDateTime appointmentEndAt;
 
     /**
      * Only set for APPOINTMENT_RESCHEDULED, so a channel can show "de X para Y".
      */
     LocalDateTime previousStartAt;
+
+    /**
+     * Appointment's committed @Version at the time of the change -- used as the
+     * calendar invite SEQUENCE, so each update outranks the previous invite.
+     */
+    Integer appointmentVersion;
 
 }
