@@ -8,6 +8,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
@@ -60,6 +63,25 @@ class BrevoEmailSenderTest {
                 .andRespond(withSuccess("{\"messageId\":\"<abc@brevo>\"}", MediaType.APPLICATION_JSON));
 
         sender("chave-teste", "noreply@teste.com").send(message("Cliente Teste"));
+
+        server.verify();
+    }
+
+    @Test
+    void send_includesAttachmentsAsBase64() {
+
+        server.expect(requestTo(BASE_URL + "/smtp/email"))
+                .andExpect(content().json("""
+                        {
+                          "attachment": [{"name": "agendamento.ics", "content": "QkVHSU46VkNBTEVOREFS"}]
+                        }
+                        """, false))
+                .andRespond(withSuccess("{\"messageId\":\"x\"}", MediaType.APPLICATION_JSON));
+
+        EmailMessage withInvite = new EmailMessage("cliente@teste.com", "Cliente", "Assunto", "<p>Oi</p>",
+                List.of(new EmailAttachment("agendamento.ics", "BEGIN:VCALENDAR".getBytes(StandardCharsets.UTF_8))));
+
+        sender("chave-teste", "noreply@teste.com").send(withInvite);
 
         server.verify();
     }

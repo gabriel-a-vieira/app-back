@@ -9,6 +9,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -59,7 +60,8 @@ public class BrevoEmailSender implements EmailSender {
                 new BrevoContact(fromEmail, fromName),
                 List.of(new BrevoContact(message.toEmail(), blankToNull(message.toName()))),
                 message.subject(),
-                message.htmlContent());
+                message.htmlContent(),
+                toBrevoAttachments(message.attachments()));
 
         try {
 
@@ -90,11 +92,31 @@ public class BrevoEmailSender implements EmailSender {
         return isBlank(value) ? null : value;
     }
 
+    /**
+     * Brevo takes attachments inline as base64 and picks the content type from
+     * the file extension. Null (field omitted) when there are none, so the
+     * request stays exactly as before for plain e-mails.
+     */
+    private static List<BrevoAttachment> toBrevoAttachments(List<EmailAttachment> attachments) {
+
+        if (attachments == null || attachments.isEmpty()) {
+            return null;
+        }
+
+        return attachments.stream()
+                .map(a -> new BrevoAttachment(a.fileName(), Base64.getEncoder().encodeToString(a.content())))
+                .toList();
+    }
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     record BrevoContact(String email, String name) {
     }
 
-    record BrevoRequest(BrevoContact sender, List<BrevoContact> to, String subject, String htmlContent) {
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    record BrevoRequest(BrevoContact sender, List<BrevoContact> to, String subject, String htmlContent, List<BrevoAttachment> attachment) {
+    }
+
+    record BrevoAttachment(String name, String content) {
     }
 
     record BrevoResponse(String messageId) {
